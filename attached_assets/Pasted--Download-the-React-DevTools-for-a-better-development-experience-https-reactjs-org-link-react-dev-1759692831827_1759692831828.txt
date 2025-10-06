@@ -1,0 +1,480 @@
+ Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ useAuth: Starting auth check
+ Loading organization...
+ Checking if super admin subdomain for hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Not super admin subdomain
+ Getting current organization...
+ Checking if super admin subdomain for hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Not super admin subdomain
+ Checking if hostname is a custom domain: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Getting organization for custom domain: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ useAuth: Starting auth check
+ Loading organization...
+ Checking if super admin subdomain for hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Not super admin subdomain
+ Getting current organization...
+ Checking if super admin subdomain for hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Not super admin subdomain
+ Checking if hostname is a custom domain: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Getting organization for custom domain: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ useAuth: getCurrentUser resolved with user: null
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ useAuth: getCurrentUser resolved with user: null
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ useAuth: Auth state changed, user: null
+zwnfmfzvkpdbxmiggbve.supabase.co/rest/v1/organization_domains?select=organization_id&domain=eq.2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev&verification_status=eq.verified:1  Failed to load resource: the server responded with a status of 406 ()
+ Custom domain not found or not verified: Object
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Getting organization for subdomain: frps
+zwnfmfzvkpdbxmiggbve.supabase.co/rest/v1/organization_domains?select=organization_id&domain=eq.2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev&verification_status=eq.verified:1  Failed to load resource: the server responded with a status of 406 ()
+ Custom domain not found or not verified: Object
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Getting organization for subdomain: frps
+ Found organization: Object
+ Current organization result: Object
+ Organization found: Fairbourne Railway Preservation Society
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ useAuth: Starting auth check
+ Loading organization...
+ Checking if super admin subdomain for hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Not super admin subdomain
+ Getting current organization...
+ Checking if super admin subdomain for hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Not super admin subdomain
+ Checking if hostname is a custom domain: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Getting organization for custom domain: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ useAuth: Starting auth check
+ Loading organization...
+ Checking if super admin subdomain for hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Not super admin subdomain
+ Getting current organization...
+ Checking if super admin subdomain for hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Not super admin subdomain
+ Checking if hostname is a custom domain: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Getting organization for custom domain: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ useAuth: getCurrentUser resolved with user: null
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ useAuth: getCurrentUser resolved with user: null
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ useAuth: Auth state changed, user: null
+ No messages from Iterable
+ Error fetching messages from Iterable No messages from Iterable
+ Found organization: Object
+ Current organization result: Object
+ Organization found: Fairbourne Railway Preservation Society
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+zwnfmfzvkpdbxmiggbve.supabase.co/rest/v1/organization_domains?select=organization_id&domain=eq.2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev&verification_status=eq.verified:1  Failed to load resource: the server responded with a status of 406 ()
+ Custom domain not found or not verified: Object
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Getting organization for subdomain: frps
+zwnfmfzvkpdbxmiggbve.supabase.co/rest/v1/organization_domains?select=organization_id&domain=eq.2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev&verification_status=eq.verified:1  Failed to load resource: the server responded with a status of 406 ()
+ Custom domain not found or not verified: Object
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Getting organization for subdomain: frps
+ Found organization: Object
+ Current organization result: Object
+ Organization found: Fairbourne Railway Preservation Society
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Found organization: Object
+ Current organization result: Object
+ Organization found: Fairbourne Railway Preservation Society
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Getting profile for user: f728e5ee-fe1e-41de-b886-11efc38fce6a
+ Getting profile for user: f728e5ee-fe1e-41de-b886-11efc38fce6a
+ Profile loaded: Object
+ Organization loaded: frps
+ useAuth: Auth state changed, user: wjl@w-j-lander.uk
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ useAuth: Starting auth check
+ Loading organization...
+ Checking if super admin subdomain for hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Not super admin subdomain
+ Getting current organization...
+ Checking if super admin subdomain for hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Not super admin subdomain
+ Checking if hostname is a custom domain: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Getting organization for custom domain: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ useAuth: Starting auth check
+ Loading organization...
+ Checking if super admin subdomain for hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Not super admin subdomain
+ Getting current organization...
+ Checking if super admin subdomain for hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Not super admin subdomain
+ Checking if hostname is a custom domain: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Getting organization for custom domain: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ useAuth: Starting auth check
+ Loading organization...
+ Checking if super admin subdomain for hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Not super admin subdomain
+ Getting current organization...
+ Checking if super admin subdomain for hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Not super admin subdomain
+ Checking if hostname is a custom domain: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Getting organization for custom domain: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ useAuth: Starting auth check
+ Loading organization...
+ Checking if super admin subdomain for hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Not super admin subdomain
+ Getting current organization...
+ Checking if super admin subdomain for hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Not super admin subdomain
+ Checking if hostname is a custom domain: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Getting organization for custom domain: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Profile loaded: Object
+ Getting profile for user: f728e5ee-fe1e-41de-b886-11efc38fce6a
+ Organization loaded: frps
+ useAuth: Auth state changed, user: wjl@w-j-lander.uk
+ Getting profile for user: f728e5ee-fe1e-41de-b886-11efc38fce6a
+ Getting profile for user: f728e5ee-fe1e-41de-b886-11efc38fce6a
+ Getting profile for user: f728e5ee-fe1e-41de-b886-11efc38fce6a
+ Getting profile for user: f728e5ee-fe1e-41de-b886-11efc38fce6a
+ Profile loaded: Object
+ Getting profile for user: f728e5ee-fe1e-41de-b886-11efc38fce6a
+ Profile loaded: Object
+ Organization loaded: frps
+ useAuth: Auth state changed, user: wjl@w-j-lander.uk
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+zwnfmfzvkpdbxmiggbve.supabase.co/rest/v1/organization_domains?select=organization_id&domain=eq.2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev&verification_status=eq.verified:1  Failed to load resource: the server responded with a status of 406 ()
+ Custom domain not found or not verified: Object
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Getting organization for subdomain: frps
+ Profile loaded: Object
+ Organization loaded: frps
+ useAuth: Auth state changed, user: wjl@w-j-lander.uk
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+zwnfmfzvkpdbxmiggbve.supabase.co/rest/v1/organization_domains?select=organization_id&domain=eq.2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev&verification_status=eq.verified:1  Failed to load resource: the server responded with a status of 406 ()
+ Custom domain not found or not verified: Object
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Getting organization for subdomain: frps
+ Organization loaded: frps
+ useAuth: getCurrentUser resolved with user: wjl@w-j-lander.uk
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Found organization: Object
+ Current organization result: Object
+ Organization found: Fairbourne Railway Preservation Society
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ useAuth: Starting auth check
+ useAuth: Starting auth check
+zwnfmfzvkpdbxmiggbve.supabase.co/rest/v1/organization_domains?select=organization_id&domain=eq.2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev&verification_status=eq.verified:1  Failed to load resource: the server responded with a status of 406 ()
+ Custom domain not found or not verified: Object
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Getting organization for subdomain: frps
+ Found organization: Object
+ Current organization result: Object
+ Organization found: Fairbourne Railway Preservation Society
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Getting profile for user: f728e5ee-fe1e-41de-b886-11efc38fce6a
+ Profile loaded: Object
+zwnfmfzvkpdbxmiggbve.supabase.co/rest/v1/organization_domains?select=organization_id&domain=eq.2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev&verification_status=eq.verified:1  Failed to load resource: the server responded with a status of 406 ()
+ Custom domain not found or not verified: Object
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Getting organization for subdomain: frps
+ Getting profile for user: f728e5ee-fe1e-41de-b886-11efc38fce6a
+ Profile loaded: Object
+ Found organization: Object
+ Current organization result: Object
+ Organization found: Fairbourne Railway Preservation Society
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Profile loaded: Object
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Found organization: Object
+ Current organization result: Object
+ Organization found: Fairbourne Railway Preservation Society
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Organization loaded: frps
+ useAuth: getCurrentUser resolved with user: wjl@w-j-lander.uk
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Getting profile for user: f728e5ee-fe1e-41de-b886-11efc38fce6a
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+ Hostname parts: Array(4)
+ Found org parameter: frps
+ Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+tenant.ts:80 Hostname parts: Array(4)
+tenant.ts:86 Found org parameter: frps
+auth.ts:88 Organization loaded: frps
+useAuth.ts:13 useAuth: getCurrentUser resolved with user: wjl@w-j-lander.uk
+tenant.ts:78 Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+tenant.ts:80 Hostname parts: Array(4)
+tenant.ts:86 Found org parameter: frps
+tenant.ts:78 Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+tenant.ts:80 Hostname parts: Array(4)
+tenant.ts:86 Found org parameter: frps
+auth.ts:75 Profile loaded: Object
+tenant.ts:78 Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+tenant.ts:80 Hostname parts: Array(4)
+tenant.ts:86 Found org parameter: frps
+tenant.ts:78 Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+tenant.ts:80 Hostname parts: Array(4)
+tenant.ts:86 Found org parameter: frps
+auth.ts:88 Organization loaded: frps
+useAuth.ts:13 useAuth: getCurrentUser resolved with user: wjl@w-j-lander.uk
+tenant.ts:78 Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+tenant.ts:80 Hostname parts: Array(4)
+tenant.ts:86 Found org parameter: frps
+tenant.ts:78 Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+tenant.ts:80 Hostname parts: Array(4)
+tenant.ts:86 Found org parameter: frps
+auth.ts:75 Profile loaded: Object
+tenant.ts:78 Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+tenant.ts:80 Hostname parts: Array(4)
+tenant.ts:86 Found org parameter: frps
+tenant.ts:78 Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+tenant.ts:80 Hostname parts: Array(4)
+tenant.ts:86 Found org parameter: frps
+auth.ts:88 Organization loaded: frps
+useAuth.ts:13 useAuth: getCurrentUser resolved with user: wjl@w-j-lander.uk
+auth.ts:75 Profile loaded: Object
+auth.ts:88 Organization loaded: frps
+useAuth.ts:24 useAuth: Auth state changed, user: wjl@w-j-lander.uk
+auth.ts:88 Organization loaded: frps
+useAuth.ts:13 useAuth: getCurrentUser resolved with user: wjl@w-j-lander.uk
+tenant.ts:78 Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+tenant.ts:80 Hostname parts: Array(4)
+tenant.ts:86 Found org parameter: frps
+tenant.ts:78 Current hostname: 2672c132-406a-42fc-8512-f126d2e6cfe0-00-3fk0lfdqtfn05.janeway.replit.dev
+tenant.ts:80 Hostname parts: Array(4)
+tenant.ts:86 Found org parameter: frps
+useAuth.ts:9 useAuth: Starting auth check
+useAuth.ts:9 useAuth: Starting auth check
+auth.ts:56 Getting profile for user: f728e5ee-fe1e-41de-b886-11efc38fce6a
+auth.ts:56 Getting profile for user: f728e5ee-fe1e-41de-b886-11efc38fce6a
+auth.ts:56 Getting profile for user: f728e5ee-fe1e-41de-b886-11efc38fce6a
+auth.ts:75 Profile loaded: Object
+auth.ts:75 Profile loaded: Object
+auth.ts:88 Organization loaded: frps
+useAuth.ts:13 useAuth: getCurrentUser resolved with user: wjl@w-j-lander.uk
+auth.ts:75 Profile loaded: Object
+auth.ts:88 Organization loaded: frps
+useAuth.ts:13 useAuth: getCurrentUser resolved with user: wjl@w-j-lander.uk
+auth.ts:88 Organization loaded: frps
+useAuth.ts:24 useAuth: Auth state changed, user: wjl@w-j-lander.uk
+zwnfmfzvkpdbxmiggbve.supabase.co/rest/v1/memberships?columns=%22profile_id%22%2C%22organization_id%22%2C%22membership_type%22%2C%22membership_year%22%2C%22status%22%2C%22amount_paid%22:1  Failed to load resource: the server responded with a status of 400 ()
+MemberDashboard.tsx:1102 Membership creation failed: Object
+handleApproveUser @ MemberDashboard.tsx:1102
+zwnfmfzvkpdbxmiggbve.supabase.co/rest/v1/memberships?columns=%22profile_id%22%2C%22organization_id%22%2C%22membership_type%22%2C%22membership_year%22%2C%22status%22%2C%22amount_paid%22:1  Failed to load resource: the server responded with a status of 400 ()
+MemberDashboard.tsx:1102 Membership creation failed: Object
+handleApproveUser @ MemberDashboard.tsx:1102
+zwnfmfzvkpdbxmiggbve.supabase.co/rest/v1/memberships?columns=%22profile_id%22%2C%22organization_id%22%2C%22membership_type%22%2C%22membership_year%22%2C%22status%22%2C%22amount_paid%22:1  Failed to load resource: the server responded with a status of 400 ()
+MemberDashboard.tsx:1102 Membership creation failed: Object
+handleApproveUser @ MemberDashboard.tsx:1102

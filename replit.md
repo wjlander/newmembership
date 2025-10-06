@@ -1,0 +1,129 @@
+# Multi-Tenant Membership Management System
+
+## Overview
+
+A comprehensive membership management system for multiple organizations with complete data isolation using URL parameter-based routing (`?org=slug`). It features a multi-tenant architecture, flexible routing (subdomain, URL parameters, or custom domains), a super admin portal, role-based access control, and an organization selector. The system supports custom signup forms with dynamic fields, membership types, integrated mailing list management with email campaigns via Resend, and **custom domain support** allowing organizations to use their own domains (e.g., `frps.org.uk`). The project is built with React, Vite, TypeScript, and Supabase (PostgreSQL), deployed via PM2 and Nginx with automatic SSL certificate management.
+
+## User Preferences
+
+Preferred communication style: Simple, everyday language.
+
+## System Architecture
+
+### Frontend Architecture
+
+The frontend is built with **Vite + React + TypeScript** for fast development and hot module replacement. State management primarily uses React hooks, with custom hooks for authentication and tenant context. Multi-tenancy is implemented via tenant detection (`src/lib/tenant.ts`) that checks **custom domains first**, then falls back to URL parameters or subdomains, and an organization selector for easy switching. Routing is handled by conditional rendering within `App.tsx` without a client-side router. Authentication integrates with Supabase Auth, guiding users through organization-specific logins based on tenant detection.
+
+### Custom Domains Architecture
+
+Organizations can use their own custom domains (e.g., `example.org`) instead of subdomains. The system includes:
+- **Database Schema**: `organization_domains` table with DNS verification tokens, SSL status, and primary domain support
+- **Tenant Detection**: Priority-based detection (custom domain → subdomain → URL parameter)
+- **Admin UI**: Complete domain management interface in organization settings (add/verify/delete/SSL)
+- **DNS Verification**: TXT record verification using ACME standard
+- **Nginx Integration**: Per-domain server blocks with security headers and rate limiting
+- **SSL Automation**: Certbot integration for automatic HTTPS via Let's Encrypt
+- **Management Tools**: Shell script (`manage-custom-domain.sh`) for server-side domain operations
+
+### Backend Architecture
+
+The backend is centered around **Supabase PostgreSQL**, utilizing core tables like `organizations`, `profiles`, `memberships`, `events`, `subscribers`, `email_campaigns`, and **`organization_domains`**. **Row Level Security (RLS)** is critical, enforcing organization-level data isolation. Super admins are uniquely identified by `organization_id = NULL` in their profiles, allowing them cross-organization access via `SECURITY DEFINER` functions, bypassing standard RLS policies. Supabase Auth manages user authentication, with a custom profile table extending user data with organization context.
+
+**Linked Member Profiles** (2025-10-05):
+- **Multi-Member Accounts**: A single login can have multiple linked member profiles (Adult, Associate, Dog, etc.) for reporting purposes
+- **Database Structure**: `profiles.primary_profile_id` links additional member profiles to the main account
+- **Individual Names**: Each linked profile has its own first_name/last_name for distinct member identification
+- **Separate Memberships**: Each linked profile maintains its own membership records (type, year, status)
+- **Email Uniqueness**: Linked profiles use generated unique emails to avoid conflicts; primary profile retains login credentials
+- **Implementation**: Created during admin approval in `MemberDashboard.tsx`, displayed hierarchically in member lists
+
+The backend includes Express.js API endpoints for custom domain management:
+- **Domain Verification**: `/api/domains/verify` - Checks DNS TXT records using native DNS resolution
+- **SSL Generation**: `/api/domains/ssl/generate` - Triggers Certbot for SSL certificate issuance (production only)
+
+### Security Architecture
+
+**Member Approval Workflow** (Critical Security Feature):
+- **Zero-Trust Client Input**: Database trigger NEVER trusts client-provided role metadata - all signups create `role='member'` regardless of client input
+- **Mandatory Admin Approval**: All new members are created with `is_active=false` and `status='pending'`, requiring explicit admin approval before system access
+- **Organization Validation**: Invalid/missing organization slugs create locked accounts for manual review, preventing unauthorized access
+- **Audit Trail**: Approval/rejection actions tracked with `status_updated_at` and `status_updated_by` for complete security auditing
+- **Privilege Separation**: Super admin and organization admin creation happen via separate server-controlled processes, never through public signup
+- **Implementation**: `fix_new_user_approval_flow.sql` trigger + admin approval UI in `MemberDashboard.tsx`
+
+**Membership Creation Workflow** (Admin-Controlled):
+- **Signup**: Users sign up with profile creation only - NO membership records created during signup
+- **Admin Creates Memberships**: During approval, admins select which membership year(s) and type(s) to assign
+- **Flexible Assignment**: Admins can assign multiple membership types (e.g., Adult + Associate) and multiple years (e.g., current + next year for late joiners)
+- **RLS Security**: Membership INSERT policies simplified since only admins create memberships after approval, not during public signup
+- **Implementation**: Admin approval modal in `MemberDashboard.tsx` with membership type and year selection
+
+**Security Fixes Applied** (2025-10-05):
+- Fixed critical privilege escalation vulnerability where clients could send `role='super_admin'` in signup metadata
+- Eliminated auto-activation of new members without admin review
+- Removed membership creation from signup flow to avoid RLS conflicts and give admins full control
+- Added complete audit trail for all approval/rejection actions
+- See `SECURITY_FIX_MEMBER_APPROVAL.md` for detailed security documentation
+
+### Design Patterns & Key Decisions
+
+-   **Priority-Based Tenant Detection**: Custom domains checked first, then subdomains, then URL parameters - provides flexibility while supporting branded experiences
+-   **URL Parameter over Subdomain-Only Routing**: Offers flexibility across all environments (localhost, IP, production) for easier development
+-   **Super Admin as Null Organization**: Prevents RLS circular dependencies and simplifies cross-organization access for super admins
+-   **Zero-Trust Security Model**: Never trust client-provided role/privileges - all authorization controlled server-side
+-   **Mandatory Approval Workflow**: All member signups require explicit admin approval to prevent unauthorized access
+-   **Admin-Controlled Membership Creation**: Memberships created only during admin approval, giving admins full control over year/type assignment
+-   **Linked Member Profiles**: Single login account can have multiple linked member profiles for family/household memberships - each profile has individual name and separate membership records for accurate reporting
+-   **Vite over Next.js**: Chosen for faster development builds, HMR, and simpler deployment of static files
+-   **Custom Hooks over Context API**: Used for simpler component logic, debugging, and direct Supabase integration
+-   **DNS-Based Domain Verification**: Uses TXT records (ACME standard) for cryptographic proof of domain ownership
+-   **Certbot Nginx Plugin**: Automates SSL certificate issuance and Nginx configuration updates
+
+### Deployment Architecture
+
+The production stack runs on **Ubuntu 20.04+ LTS** with **Node.js 20**, managed by **PM2** in cluster mode. **Nginx** acts as a reverse proxy for subdomain routing and custom domains, handling static file caching, compression, and security headers. SSL/TLS is managed by **Certbot** (Let's Encrypt) with wildcard support for subdomains and per-domain certificates for custom domains. An **Express.js** server serves the built Vite static files. 
+
+The `deploy.sh` script automates:
+- Server setup and security configuration (UFW, Fail2Ban)
+- Application deployment and PM2 process management
+- SSL configuration for main domain and wildcard subdomains
+- **Custom domain infrastructure** (management script, templates, documentation)
+- Monitoring, backups, and log rotation
+
+**Custom Domain Management** is handled via `/usr/local/bin/manage-custom-domain` script that:
+- Generates Nginx configurations from templates
+- Requests SSL certificates via Certbot
+- Validates domain format and DNS configuration
+- Lists and removes custom domains
+
+## External Dependencies
+
+### Third-Party Services
+
+-   **Supabase**: Primary backend for PostgreSQL database (RLS), authentication, and potential storage. Uses `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
+-   **Resend**: For transactional emails, marketing campaigns, and audience management. Integrated via `RESEND_API_KEY`.
+-   **Let's Encrypt**: SSL certificate authority for HTTPS (via Certbot). Provides free SSL certificates with automatic renewal.
+
+### Frontend Libraries
+
+-   `@supabase/supabase-js`: Supabase client library.
+-   `tailwind-merge` + `clsx`: For CSS utility management.
+-   `lucide-react`: Icon library.
+-   `react-dom`: React rendering library.
+
+### Build & Development Tools
+
+-   `vite`: Build tool and development server.
+-   `typescript`: For type safety.
+-   `tailwindcss`: Utility-first CSS framework.
+-   `eslint`: Code linting.
+-   `express`: Production static file server.
+
+### Infrastructure Dependencies
+
+-   **Node.js 18+**: Runtime environment
+-   **PostgreSQL**: Managed by Supabase
+-   **PM2**: Process manager for production
+-   **Nginx**: Web server and reverse proxy (with per-domain configuration support)
+-   **Certbot**: SSL certificate management (automatic renewal via systemd timer)
+-   **DNS Provider**: Required for custom domain verification (must support A and TXT records)

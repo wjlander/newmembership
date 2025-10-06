@@ -1,0 +1,60 @@
+~/workspace$ # Check if repo is shallow
+git rev-parse --is-shallow-repository
+true
+~/workspace$ git fetch --unshallow
+git push origin test
+Enumerating objects: 417, done.
+Counting objects: 100% (417/417), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (307/307), done.
+Writing objects: 100% (417/417), 3.08 MiB | 10.92 MiB/s, done.
+Total 417 (delta 155), reused 287 (delta 85), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (155/155), done.
+remote: fatal: did not receive expected object 8029849265ac0635ade5600a0982951f98ffaa31
+error: remote unpack failed: index-pack failed
+To https://github.com/wiljamlan/updatedmembership.git
+ ! [remote rejected] test -> test (failed)
+error: failed to push some refs to 'https://github.com/wiljamlan/updatedmembership.git'
+~/workspace$ # Check for corruption
+git fsck --full
+
+# Remove empty object files
+find .git/objects/ -type f -empty -delete
+
+# Fetch fresh objects
+git fetch origin
+
+# Try push again
+git push origin test
+Checking object directories: 100% (256/256), done.
+Checking objects: 100% (298/298), done.
+Enumerating objects: 417, done.
+Counting objects: 100% (417/417), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (307/307), done.
+Writing objects: 100% (417/417), 3.08 MiB | 10.99 MiB/s, done.
+Total 417 (delta 155), reused 287 (delta 85), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (155/155), done.
+remote: fatal: did not receive expected object 8029849265ac0635ade5600a0982951f98ffaa31
+error: remote unpack failed: index-pack failed
+To https://github.com/wiljamlan/updatedmembership.git
+ ! [remote rejected] test -> test (failed)
+error: failed to push some refs to 'https://github.com/wiljamlan/updatedmembership.git'
+~/workspace$ # Create new branch from your current work
+git checkout -b fresh-branch
+
+# Force push to a new branch
+git push -u origin fresh-branch --force
+Switched to a new branch 'fresh-branch'
+Enumerating objects: 414, done.
+Counting objects: 100% (414/414), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (304/304), done.
+Writing objects: 100% (414/414), 3.08 MiB | 7.94 MiB/s, done.
+Total 414 (delta 153), reused 287 (delta 85), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (153/153), done.
+remote: fatal: did not receive expected object 8029849265ac0635ade5600a0982951f98ffaa31
+error: remote unpack failed: index-pack failed
+To https://github.com/wiljamlan/updatedmembership.git
+ ! [remote rejected] fresh-branch -> fresh-branch (failed)
+error: failed to push some refs to 'https://github.com/wiljamlan/updatedmembership.git'
