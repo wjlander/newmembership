@@ -107,13 +107,20 @@ CREATE TABLE IF NOT EXISTS email_workflows (
 CREATE INDEX IF NOT EXISTS idx_email_workflows_organization_id ON email_workflows(organization_id);
 CREATE INDEX IF NOT EXISTS idx_email_workflows_recipient_position_id ON email_workflows(recipient_position_id);
 
--- Add constraint to ensure proper recipient configuration
-ALTER TABLE email_workflows ADD CONSTRAINT IF NOT EXISTS check_recipient_config
-  CHECK (
-    (recipient_type = 'email' AND recipient_email IS NOT NULL) OR
-    (recipient_type = 'position' AND recipient_position_id IS NOT NULL) OR
-    (recipient_type = 'all_members')
-  );
+-- Add constraint to ensure proper recipient configuration (using DO block for IF NOT EXISTS)
+DO $$ 
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'check_recipient_config'
+  ) THEN
+    ALTER TABLE email_workflows ADD CONSTRAINT check_recipient_config
+      CHECK (
+        (recipient_type = 'email' AND recipient_email IS NOT NULL) OR
+        (recipient_type = 'position' AND recipient_position_id IS NOT NULL) OR
+        (recipient_type = 'all_members')
+      );
+  END IF;
+END $$;
 
 COMMENT ON TABLE email_workflows IS 'Automated email workflows triggered by member actions';
 COMMENT ON COLUMN email_workflows.recipient_type IS 'Type of recipient: email (specific email), position (committee position holder), or all_members';
