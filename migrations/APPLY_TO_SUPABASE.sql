@@ -56,9 +56,32 @@ CREATE TABLE IF NOT EXISTS committee_members (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Add position_id column if it doesn't exist (for existing tables)
+DO $$ 
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'committee_members' AND column_name = 'position_id'
+  ) THEN
+    ALTER TABLE committee_members ADD COLUMN position_id UUID REFERENCES committee_positions(id) ON DELETE SET NULL;
+  END IF;
+END $$;
+
 CREATE INDEX IF NOT EXISTS idx_committee_members_committee_id ON committee_members(committee_id);
 CREATE INDEX IF NOT EXISTS idx_committee_members_profile_id ON committee_members(profile_id);
 CREATE INDEX IF NOT EXISTS idx_committee_members_position_id ON committee_members(position_id);
+
+-- Drop old unique constraint if it exists (it had position_id which caused issues)
+DO $$ 
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'committee_members_committee_id_profile_id_position_id_key'
+  ) THEN
+    ALTER TABLE committee_members DROP CONSTRAINT committee_members_committee_id_profile_id_position_id_key;
+  END IF;
+END $$;
+
+-- Create new unique constraint (committee_id + profile_id only)
 CREATE UNIQUE INDEX IF NOT EXISTS committee_members_committee_id_profile_id_key ON committee_members(committee_id, profile_id);
 
 -- 4. Seed default committee positions for Fairbourne Railway Preservation Society
