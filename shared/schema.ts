@@ -189,6 +189,6 @@ export const committeeMembers = pgTable('committee_members', {
   committeeIdIdx: index('idx_committee_members_committee_id').on(table.committee_id),
   profileIdIdx: index('idx_committee_members_profile_id').on(table.profile_id),
   positionIdIdx: index('idx_committee_members_position_id').on(table.position_id),
-  committeeProfileUnique: unique('committee_members_committee_id_profile_id_position_id_key').on(table.committee_id, table.profile_id, table.position_id),
+  committeeProfileUnique: unique('committee_members_committee_id_profile_id_key').on(table.committee_id, table.profile_id),
 }));
 

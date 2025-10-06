@@ -371,6 +371,7 @@ export function MemberDashboard() {
                     <SelectItem value="admin-email-templates">Email Templates</SelectItem>
                     <SelectItem value="admin-event-registrations">Event Registrations</SelectItem>
                     <SelectItem value="admin-committees">Committees Management</SelectItem>
+                    <SelectItem value="admin-committee-positions">Committee Positions</SelectItem>
                     <SelectItem value="admin-analytics">Analytics</SelectItem>
                     <SelectItem value="admin-badges">Badges Management</SelectItem>
                     <SelectItem value="admin-reminders">Automated Reminders</SelectItem>
@@ -700,6 +701,10 @@ export function MemberDashboard() {
       {/* Admin - Committees Management View */}
       {activeView === 'admin-committees' && isAdmin && organization && (
         <AdminCommitteesView organizationId={organization.id} />
+      )}
+
+      {activeView === 'admin-committee-positions' && isAdmin && organization && (
+        <AdminCommitteePositionsView organizationId={organization.id} />
       )}
 
       {/* Admin - Analytics View */}
@@ -6731,17 +6736,18 @@ interface CommitteeMembersModalProps {
 function CommitteeMembersModal({ committee, organizationId, onClose, onSuccess }: CommitteeMembersModalProps) {
   const [members, setMembers] = useState<CommitteeMember[]>([]);
   const [profiles, setProfiles] = useState<any[]>([]);
+  const [positions, setPositions] = useState<CommitteePosition[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddMember, setShowAddMember] = useState(false);
   const [selectedProfileId, setSelectedProfileId] = useState('');
-  const [selectedRole, setSelectedRole] = useState('member');
+  const [selectedPositionId, setSelectedPositionId] = useState('');
   const [adding, setAdding] = useState(false);
 
   const fetchMembers = async () => {
     try {
       const { data, error } = await supabase
         .from('committee_members')
-        .select('id, profile_id, role, profiles(id, first_name, last_name, email)')
+        .select('id, profile_id, position_id, profiles(id, first_name, last_name, email)')
         .eq('committee_id', committee.id);
 
       if (error) throw error;
@@ -6768,10 +6774,26 @@ function CommitteeMembersModal({ committee, organizationId, onClose, onSuccess }
     }
   };
 
+  const fetchPositions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('committee_positions')
+        .select('*')
+        .eq('organization_id', organizationId)
+        .eq('is_active', true)
+        .order('display_order');
+
+      if (error) throw error;
+      setPositions(data || []);
+    } catch (error) {
+      console.error('Error fetching positions:', error);
+    }
+  };
+
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      await Promise.all([fetchMembers(), fetchProfiles()]);
+      await Promise.all([fetchMembers(), fetchProfiles(), fetchPositions()]);
       setLoading(false);
     };
     loadData();
@@ -6790,7 +6812,7 @@ function CommitteeMembersModal({ committee, organizationId, onClose, onSuccess }
         .insert({
           committee_id: committee.id,
           profile_id: selectedProfileId,
-          role: selectedRole
+          position_id: selectedPositionId || null
         });
 
       if (error) throw error;
@@ -6803,7 +6825,7 @@ function CommitteeMembersModal({ committee, organizationId, onClose, onSuccess }
       toast.success('Member added successfully');
       setShowAddMember(false);
       setSelectedProfileId('');
-      setSelectedRole('member');
+      setSelectedPositionId('');
       await fetchMembers();
       onSuccess();
     } catch (error) {
@@ -6814,20 +6836,20 @@ function CommitteeMembersModal({ committee, organizationId, onClose, onSuccess }
     }
   };
 
-  const handleChangeRole = async (memberId: string, newRole: string) => {
+  const handleChangePosition = async (memberId: string, newPositionId: string) => {
     try {
       const { error } = await supabase
         .from('committee_members')
-        .update({ role: newRole })
+        .update({ position_id: newPositionId || null })
         .eq('id', memberId);
 
       if (error) throw error;
 
-      toast.success('Role updated successfully');
+      toast.success('Position updated successfully');
       await fetchMembers();
     } catch (error) {
-      console.error('Error updating role:', error);
-      toast.error('Failed to update role');
+      console.error('Error updating position:', error);
+      toast.error('Failed to update position');
     }
   };
 
@@ -6902,18 +6924,17 @@ function CommitteeMembersModal({ committee, organizationId, onClose, onSuccess }
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Role</label>
+                    <label className="block text-sm font-medium mb-2">Position (Optional)</label>
                     <select
-                      value={selectedRole}
-                      onChange={(e) => setSelectedRole(e.target.value)}
+                      value={selectedPositionId}
+                      onChange={(e) => setSelectedPositionId(e.target.value)}
                       className="w-full px-3 py-2 border rounded-md"
-                      data-testid="select-member-role"
+                      data-testid="select-member-position"
                     >
-                      <option value="member">Member</option>
-                      <option value="chair">Chair</option>
-                      <option value="vice_chair">Vice Chair</option>
-                      <option value="secretary">Secretary</option>
-                      <option value="treasurer">Treasurer</option>
+                      <option value="">No specific position</option>
+                      {positions.map(position => (
+                        <option key={position.id} value={position.id}>{position.name}</option>
+                      ))}
                     </select>
                   </div>
                   <div className="flex gap-2">
@@ -6952,16 +6973,15 @@ function CommitteeMembersModal({ committee, organizationId, onClose, onSuccess }
                     </div>
                     <div className="flex items-center gap-2">
                       <select
-                        value={member.role}
-                        onChange={(e) => handleChangeRole(member.id, e.target.value)}
+                        value={member.position_id || ''}
+                        onChange={(e) => handleChangePosition(member.id, e.target.value)}
                         className="px-3 py-1 border rounded-md text-sm"
-                        data-testid={`select-role-${member.id}`}
+                        data-testid={`select-position-${member.id}`}
                       >
-                        <option value="member">Member</option>
-                        <option value="chair">Chair</option>
-                        <option value="vice_chair">Vice Chair</option>
-                        <option value="secretary">Secretary</option>
-                        <option value="treasurer">Treasurer</option>
+                        <option value="">No specific position</option>
+                        {positions.map(position => (
+                          <option key={position.id} value={position.id}>{position.name}</option>
+                        ))}
                       </select>
                       <Button
                         size="sm"
@@ -6978,6 +6998,408 @@ function CommitteeMembersModal({ committee, organizationId, onClose, onSuccess }
             )}
           </>
         )}
+      </div>
+    </div>
+  );
+}
+
+// Admin Committee Positions View Component
+interface AdminCommitteePositionsViewProps {
+  organizationId: string;
+}
+
+interface CommitteePosition {
+  id: string;
+  organization_id: string;
+  name: string;
+  description: string | null;
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+function AdminCommitteePositionsView({ organizationId }: AdminCommitteePositionsViewProps) {
+  const [positions, setPositions] = useState<CommitteePosition[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedPosition, setSelectedPosition] = useState<CommitteePosition | null>(null);
+
+  const fetchPositions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('committee_positions')
+        .select('*')
+        .eq('organization_id', organizationId)
+        .order('display_order');
+
+      if (error) throw error;
+      setPositions(data || []);
+    } catch (error) {
+      console.error('Error fetching positions:', error);
+      toast.error('Failed to load positions');
+    }
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      await fetchPositions();
+      setLoading(false);
+    };
+
+    fetchData();
+  }, [organizationId]);
+
+  const handleDelete = async (positionId: string, positionName: string) => {
+    if (!confirm(`Are you sure you want to delete "${positionName}"? Committee members assigned to this position will be unassigned.`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('committee_positions')
+        .delete()
+        .eq('id', positionId);
+
+      if (error) throw error;
+
+      toast.success('Position deleted successfully');
+      fetchPositions();
+    } catch (error) {
+      console.error('Error deleting position:', error);
+      toast.error('Failed to delete position');
+    }
+  };
+
+  const handleToggleActive = async (position: CommitteePosition) => {
+    try {
+      const { error } = await supabase
+        .from('committee_positions')
+        .update({ is_active: !position.is_active })
+        .eq('id', position.id);
+
+      if (error) throw error;
+
+      toast.success(`Position ${!position.is_active ? 'activated' : 'deactivated'}`);
+      fetchPositions();
+    } catch (error) {
+      console.error('Error updating position:', error);
+      toast.error('Failed to update position');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="text-center py-12">
+        <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
+        <p className="text-gray-600">Loading positions...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold">Committee Positions</h2>
+          <p className="text-gray-600 mt-1">Manage custom committee positions for your organization</p>
+        </div>
+        <Button onClick={() => setShowCreateModal(true)} data-testid="button-create-position">
+          <Plus className="h-4 w-4 mr-2" />
+          Create Position
+        </Button>
+      </div>
+
+      {positions.length === 0 ? (
+        <Card className="p-12 text-center">
+          <User className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+          <h3 className="text-lg font-medium mb-2">No Positions Yet</h3>
+          <p className="text-gray-600 mb-4">Create committee positions like Chairman, Secretary, or Treasurer</p>
+          <Button onClick={() => setShowCreateModal(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Create Your First Position
+          </Button>
+        </Card>
+      ) : (
+        <div className="grid gap-4">
+          {positions.map(position => (
+            <Card key={position.id} className="p-6" data-testid={`position-${position.id}`}>
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="text-lg font-semibold">{position.name}</h3>
+                    {!position.is_active && (
+                      <span className="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded">Inactive</span>
+                    )}
+                    <span className="text-sm text-gray-500">Order: {position.display_order}</span>
+                  </div>
+                  {position.description && (
+                    <p className="text-gray-600 text-sm">{position.description}</p>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setSelectedPosition(position);
+                      setShowEditModal(true);
+                    }}
+                    data-testid={`button-edit-position-${position.id}`}
+                  >
+                    <Edit2 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleToggleActive(position)}
+                    data-testid={`button-toggle-position-${position.id}`}
+                  >
+                    {position.is_active ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleDelete(position.id, position.name)}
+                    data-testid={`button-delete-position-${position.id}`}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {showCreateModal && (
+        <CreatePositionModal
+          organizationId={organizationId}
+          onClose={() => setShowCreateModal(false)}
+          onSuccess={() => {
+            setShowCreateModal(false);
+            fetchPositions();
+          }}
+        />
+      )}
+
+      {showEditModal && selectedPosition && (
+        <EditPositionModal
+          position={selectedPosition}
+          onClose={() => {
+            setShowEditModal(false);
+            setSelectedPosition(null);
+          }}
+          onSuccess={() => {
+            setShowEditModal(false);
+            setSelectedPosition(null);
+            fetchPositions();
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+// Create Position Modal
+interface CreatePositionModalProps {
+  organizationId: string;
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+function CreatePositionModal({ organizationId, onClose, onSuccess }: CreatePositionModalProps) {
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [displayOrder, setDisplayOrder] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const { error } = await supabase
+        .from('committee_positions')
+        .insert({
+          organization_id: organizationId,
+          name,
+          description: description || null,
+          display_order: displayOrder,
+          is_active: true
+        });
+
+      if (error) throw error;
+
+      toast.success('Position created successfully');
+      onSuccess();
+    } catch (error) {
+      console.error('Error creating position:', error);
+      toast.error('Failed to create position');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" data-testid="create-position-modal">
+      <div className="bg-white rounded-lg p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold">Create Committee Position</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700" data-testid="button-close-modal">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-2">Position Name *</label>
+            <Input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g., Chairman, Secretary, Treasurer"
+              required
+              data-testid="input-position-name"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Description</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Brief description of responsibilities"
+              className="w-full px-3 py-2 border rounded-md min-h-[80px]"
+              data-testid="input-position-description"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Display Order</label>
+            <Input
+              type="number"
+              value={displayOrder}
+              onChange={(e) => setDisplayOrder(parseInt(e.target.value) || 0)}
+              placeholder="0"
+              data-testid="input-display-order"
+            />
+            <p className="text-xs text-gray-500 mt-1">Lower numbers appear first in lists</p>
+          </div>
+
+          <div className="flex justify-end gap-2 mt-6">
+            <Button type="button" variant="outline" onClick={onClose} data-testid="button-cancel">
+              Cancel
+            </Button>
+            <Button type="submit" disabled={loading} data-testid="button-submit-create-position">
+              {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Create Position
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// Edit Position Modal
+interface EditPositionModalProps {
+  position: CommitteePosition;
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+function EditPositionModal({ position, onClose, onSuccess }: EditPositionModalProps) {
+  const [name, setName] = useState(position.name);
+  const [description, setDescription] = useState(position.description || '');
+  const [displayOrder, setDisplayOrder] = useState(position.display_order);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const { error } = await supabase
+        .from('committee_positions')
+        .update({
+          name,
+          description: description || null,
+          display_order: displayOrder,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', position.id);
+
+      if (error) throw error;
+
+      toast.success('Position updated successfully');
+      onSuccess();
+    } catch (error) {
+      console.error('Error updating position:', error);
+      toast.error('Failed to update position');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" data-testid="edit-position-modal">
+      <div className="bg-white rounded-lg p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold">Edit Committee Position</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700" data-testid="button-close-edit-modal">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-2">Position Name *</label>
+            <Input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g., Chairman, Secretary, Treasurer"
+              required
+              data-testid="input-edit-position-name"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Description</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Brief description of responsibilities"
+              className="w-full px-3 py-2 border rounded-md min-h-[80px]"
+              data-testid="input-edit-position-description"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Display Order</label>
+            <Input
+              type="number"
+              value={displayOrder}
+              onChange={(e) => setDisplayOrder(parseInt(e.target.value) || 0)}
+              placeholder="0"
+              data-testid="input-edit-display-order"
+            />
+            <p className="text-xs text-gray-500 mt-1">Lower numbers appear first in lists</p>
+          </div>
+
+          <div className="flex justify-end gap-2 mt-6">
+            <Button type="button" variant="outline" onClick={onClose} data-testid="button-cancel-edit">
+              Cancel
+            </Button>
+            <Button type="submit" disabled={loading} data-testid="button-submit-edit-position">
+              {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Save Changes
+            </Button>
+          </div>
+        </form>
       </div>
     </div>
   );
