@@ -113,9 +113,12 @@ export function SignupFormEnhanced({
   const handleFormSubmit = async (submittedData: {
     formData: any;
     selectedMemberships: string[];
+    membershipQuantities?: Record<string, number>;
+    linkedMemberNames?: Record<string, Array<{firstName: string, lastName: string, dateOfBirth?: string}>>;
+    paymentInfo?: any;
     totalAmount: number;
   }) => {
-    const { formData, selectedMemberships, totalAmount } = submittedData;
+    const { formData, selectedMemberships, membershipQuantities, linkedMemberNames, paymentInfo, totalAmount } = submittedData;
 
     const email = formData.email;
     const firstName = formData.first_name || formData.full_name?.split(' ')[0] || '';
@@ -170,7 +173,12 @@ export function SignupFormEnhanced({
           organization_id: organizationId,
           schema_id: schemaId,
           schema_version: schemaVersion,
-          response_data: formData,
+          response_data: {
+            ...formData,
+            linkedMemberNames: linkedMemberNames || {},
+            membershipQuantities: membershipQuantities || {},
+            paymentInfo: paymentInfo || {}
+          },
           selected_membership_types: selectedMemberships,
           total_amount: totalAmount
         });
