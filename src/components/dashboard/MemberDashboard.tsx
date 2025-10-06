@@ -37,6 +37,7 @@ import {
 import { FormBuilder } from '@/components/admin/FormBuilder'
 import { MembershipTypesEditor } from '@/components/admin/MembershipTypesEditor'
 import { EmailWorkflowsManager } from '@/components/admin/EmailWorkflowsManager'
+import { DocumentsManager } from '@/components/admin/DocumentsManager'
 import { DynamicFormRenderer } from '@/components/forms/DynamicFormRenderer'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
@@ -1275,24 +1276,6 @@ function MembersAdminView({ organizationId }: MembersAdminViewProps) {
             profile_id: linkedProfile.id, // Linked profile gets the membership
             organization_id: organizationId,
             membership_type: typeId,
-            membership_year: year,
-            start_date: dates.start_date,
-            end_date: dates.end_date,
-            status: 'active',
-            amount_paid: 0.00
-          });
-        }
-      }
-
-      // ALSO give primary profile a membership for the first type (for backward compatibility with existing queries)
-      if (membershipDetails.membershipTypes.length > 0) {
-        const primaryTypeId = membershipDetails.membershipTypes[0];
-        for (const year of membershipDetails.membershipYears) {
-          const dates = calculateMembershipDates(year);
-          membershipRecords.push({
-            profile_id: userId, // Primary profile also gets a membership
-            organization_id: organizationId,
-            membership_type: primaryTypeId,
             membership_year: year,
             start_date: dates.start_date,
             end_date: dates.end_date,

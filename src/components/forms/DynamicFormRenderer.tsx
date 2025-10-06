@@ -24,7 +24,7 @@ export function DynamicFormRenderer({
   const [formData, setFormData] = useState<any>({});
   const [selectedMemberships, setSelectedMemberships] = useState<string[]>([]);
   const [membershipQuantities, setMembershipQuantities] = useState<Record<string, number>>({});
-  const [linkedMemberNames, setLinkedMemberNames] = useState<Record<string, Array<{firstName: string, lastName: string}>>>({});
+  const [linkedMemberNames, setLinkedMemberNames] = useState<Record<string, Array<{firstName: string, lastName: string, dateOfBirth?: string}>>>({});
   const [paymentInfo, setPaymentInfo] = useState({
     payment_type: '',
     payment_reference: '',
@@ -75,6 +75,12 @@ export function DynamicFormRenderer({
     const membershipTotal = selectedMemberships.reduce((sum, id) => {
       const membership = membershipTypes.find(m => m.id === id);
       const quantity = membershipQuantities[id] || 1;
+      
+      // Family membership is a flat price (2 adults + 3 children included)
+      if (membership && (membership.code?.toLowerCase().includes('family') || membership.name?.toLowerCase().includes('family'))) {
+        return sum + (membership?.price || 0); // Flat price, not per person
+      }
+      
       return sum + ((membership?.price || 0) * quantity);
     }, 0);
 
@@ -288,7 +294,7 @@ export function DynamicFormRenderer({
                               setLinkedMemberNames(prev => {
                                 const currentNames = prev[membership.id] || [];
                                 const newNames = Array.from({ length: newQty }, (_, i) => 
-                                  currentNames[i] || { firstName: '', lastName: '' }
+                                  currentNames[i] || { firstName: '', lastName: '', dateOfBirth: '' }
                                 );
                                 return { ...prev, [membership.id]: newNames };
                               });
@@ -302,40 +308,69 @@ export function DynamicFormRenderer({
                       {isSelected && quantity > 0 && (
                         <div className="space-y-2 mt-3 pl-4 border-l-2 border-blue-200">
                           <p className="text-sm font-medium text-gray-700">Member Names:</p>
-                          {Array.from({ length: quantity }).map((_, index) => (
-                            <div key={index} className="flex gap-2">
-                              <Input
-                                placeholder="First Name"
-                                value={names[index]?.firstName || ''}
-                                onChange={(e) => {
-                                  setLinkedMemberNames(prev => {
-                                    const memberNames = [...(prev[membership.id] || [])];
-                                    memberNames[index] = {
-                                      ...memberNames[index],
-                                      firstName: e.target.value
-                                    };
-                                    return { ...prev, [membership.id]: memberNames };
-                                  });
-                                }}
-                                data-testid={`input-firstname-${membership.code}-${index}`}
-                              />
-                              <Input
-                                placeholder="Last Name"
-                                value={names[index]?.lastName || ''}
-                                onChange={(e) => {
-                                  setLinkedMemberNames(prev => {
-                                    const memberNames = [...(prev[membership.id] || [])];
-                                    memberNames[index] = {
-                                      ...memberNames[index],
-                                      lastName: e.target.value
-                                    };
-                                    return { ...prev, [membership.id]: memberNames };
-                                  });
-                                }}
-                                data-testid={`input-lastname-${membership.code}-${index}`}
-                              />
-                            </div>
-                          ))}
+                          {Array.from({ length: quantity }).map((_, index) => {
+                            const isChildOrJunior = membership.code?.toLowerCase().includes('child') || 
+                                                   membership.code?.toLowerCase().includes('junior') ||
+                                                   membership.name?.toLowerCase().includes('child') || 
+                                                   membership.name?.toLowerCase().includes('junior');
+                            
+                            return (
+                              <div key={index} className="space-y-2">
+                                <div className="flex gap-2">
+                                  <Input
+                                    placeholder="First Name"
+                                    value={names[index]?.firstName || ''}
+                                    onChange={(e) => {
+                                      setLinkedMemberNames(prev => {
+                                        const memberNames = [...(prev[membership.id] || [])];
+                                        memberNames[index] = {
+                                          ...memberNames[index],
+                                          firstName: e.target.value
+                                        };
+                                        return { ...prev, [membership.id]: memberNames };
+                                      });
+                                    }}
+                                    data-testid={`input-firstname-${membership.code}-${index}`}
+                                  />
+                                  <Input
+                                    placeholder="Last Name"
+                                    value={names[index]?.lastName || ''}
+                                    onChange={(e) => {
+                                      setLinkedMemberNames(prev => {
+                                        const memberNames = [...(prev[membership.id] || [])];
+                                        memberNames[index] = {
+                                          ...memberNames[index],
+                                          lastName: e.target.value
+                                        };
+                                        return { ...prev, [membership.id]: memberNames };
+                                      });
+                                    }}
+                                    data-testid={`input-lastname-${membership.code}-${index}`}
+                                  />
+                                </div>
+                                {isChildOrJunior && (
+                                  <div className="flex gap-2 items-center">
+                                    <Label className="text-sm w-24">Date of Birth:</Label>
+                                    <Input
+                                      type="date"
+                                      value={names[index]?.dateOfBirth || ''}
+                                      onChange={(e) => {
+                                        setLinkedMemberNames(prev => {
+                                          const memberNames = [...(prev[membership.id] || [])];
+                                          memberNames[index] = {
+                                            ...memberNames[index],
+                                            dateOfBirth: e.target.value
+                                          };
+                                          return { ...prev, [membership.id]: memberNames };
+                                        });
+                                      }}
+                                      data-testid={`input-dob-${membership.code}-${index}`}
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
                     </div>
@@ -439,6 +474,72 @@ export function DynamicFormRenderer({
           </div>
         </div>
       ))}
+
+      {/* Payment Information Section */}
+      {selectedMemberships.length > 0 && (
+        <div className="space-y-4 p-4 border rounded-lg">
+          <h3 className="text-lg font-semibold">Payment Information</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="payment_type">Payment Method</Label>
+              <Select
+                value={paymentInfo.payment_type}
+                onValueChange={(value) => setPaymentInfo(prev => ({ ...prev, payment_type: value }))}
+              >
+                <SelectTrigger id="payment_type">
+                  <SelectValue placeholder="Select payment method" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cash">Cash</SelectItem>
+                  <SelectItem value="cheque">Cheque</SelectItem>
+                  <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                  <SelectItem value="card">Card</SelectItem>
+                  <SelectItem value="paypal">PayPal</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="payment_date">Payment Date</Label>
+              <Input
+                id="payment_date"
+                type="date"
+                value={paymentInfo.payment_date}
+                onChange={(e) => setPaymentInfo(prev => ({ ...prev, payment_date: e.target.value }))}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="payment_reference">Payment Reference (optional)</Label>
+            <Input
+              id="payment_reference"
+              type="text"
+              placeholder="Transaction ID, cheque number, etc."
+              value={paymentInfo.payment_reference}
+              onChange={(e) => setPaymentInfo(prev => ({ ...prev, payment_reference: e.target.value }))}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="donation_amount">Optional Donation (£)</Label>
+            <Input
+              id="donation_amount"
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="0.00"
+              value={formData.donation_amount || ''}
+              onChange={(e) => updateField('donation_amount', e.target.value)}
+            />
+            <p className="text-sm text-muted-foreground">
+              Any additional donation to support the organization
+            </p>
+          </div>
+        </div>
+      )}
 
       {total > 0 && (
         <div className="p-4 bg-accent rounded-lg">
