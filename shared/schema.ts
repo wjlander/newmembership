@@ -143,6 +143,27 @@ export const renewalWorkflows = pgTable('renewal_workflows', {
   organizationIdIdx: index('idx_renewal_workflows_organization_id').on(table.organization_id),
 }));
 
+export const emailWorkflows = pgTable('email_workflows', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  organization_id: uuid('organization_id').references(() => organizations.id, { onDelete: 'cascade' }).notNull(),
+  name: text('name').notNull(),
+  description: text('description'),
+  trigger_event: text('trigger_event').notNull(),
+  conditions: jsonb('conditions').default(sql`'{}'::jsonb`),
+  recipient_type: text('recipient_type').default('email').notNull(),
+  recipient_email: text('recipient_email'),
+  recipient_name: text('recipient_name'),
+  recipient_position_id: uuid('recipient_position_id').references(() => committeePositions.id, { onDelete: 'set null' }),
+  email_subject: text('email_subject').notNull(),
+  email_template: text('email_template').notNull(),
+  is_active: boolean('is_active').default(true),
+  created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+}, (table) => ({
+  organizationIdIdx: index('idx_email_workflows_organization_id').on(table.organization_id),
+  recipientPositionIdx: index('idx_email_workflows_recipient_position_id').on(table.recipient_position_id),
+}));
+
 export const committees = pgTable('committees', {
   id: uuid('id').primaryKey().defaultRandom(),
   organization_id: uuid('organization_id').references(() => organizations.id, { onDelete: 'cascade' }).notNull(),

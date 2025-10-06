@@ -14,8 +14,10 @@ interface EmailWorkflow {
   description: string | null
   trigger_event: 'signup' | 'renewal' | 'both'
   conditions: any
-  recipient_email: string
+  recipient_type: 'email' | 'position' | 'all_members'
+  recipient_email: string | null
   recipient_name: string | null
+  recipient_position_id: string | null
   email_subject: string
   email_template: string
   is_active: boolean
@@ -41,7 +43,13 @@ export function EmailWorkflowsManager({ organizationId }: EmailWorkflowsManagerP
     try {
       const { data, error } = await supabase
         .from('email_workflows')
-        .select('*')
+        .select(`
+          *,
+          committee_positions (
+            id,
+            name
+          )
+        `)
         .eq('organization_id', organizationId)
         .order('created_at', { ascending: false })
 
@@ -156,7 +164,11 @@ export function EmailWorkflowsManager({ organizationId }: EmailWorkflowsManagerP
                           <div>
                             <span className="text-gray-500">Recipient:</span>
                             <p className="font-medium">
-                              {workflow.recipient_name || workflow.recipient_email}
+                              {workflow.recipient_type === 'position' && (workflow as any).committee_positions
+                                ? `Position: ${(workflow as any).committee_positions.name}`
+                                : workflow.recipient_type === 'all_members'
+                                ? 'All Active Members'
+                                : workflow.recipient_name || workflow.recipient_email}
                             </p>
                           </div>
                           <div>
@@ -235,13 +247,36 @@ function WorkflowEditor({ organizationId, workflow, onClose, onSuccess }: Workfl
     name: workflow?.name || '',
     description: workflow?.description || '',
     trigger_event: workflow?.trigger_event || 'signup',
+    recipient_type: workflow?.recipient_type || 'email',
     recipient_email: workflow?.recipient_email || '',
     recipient_name: workflow?.recipient_name || '',
+    recipient_position_id: workflow?.recipient_position_id || '',
     email_subject: workflow?.email_subject || '',
     email_template: workflow?.email_template || '',
     is_active: workflow?.is_active ?? true
   })
+  const [positions, setPositions] = useState<Array<{ id: string; name: string; description: string | null }>>([])
   const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    fetchPositions()
+  }, [organizationId])
+
+  const fetchPositions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('committee_positions')
+        .select('id, name, description')
+        .eq('organization_id', organizationId)
+        .eq('is_active', true)
+        .order('display_order')
+
+      if (error) throw error
+      setPositions(data || [])
+    } catch (error) {
+      console.error('Error fetching positions:', error)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -254,8 +289,10 @@ function WorkflowEditor({ organizationId, workflow, onClose, onSuccess }: Workfl
         description: formData.description || null,
         trigger_event: formData.trigger_event,
         conditions: {},
-        recipient_email: formData.recipient_email,
-        recipient_name: formData.recipient_name || null,
+        recipient_type: formData.recipient_type,
+        recipient_email: formData.recipient_type === 'email' ? formData.recipient_email : null,
+        recipient_name: formData.recipient_type === 'email' ? (formData.recipient_name || null) : null,
+        recipient_position_id: formData.recipient_type === 'position' ? (formData.recipient_position_id || null) : null,
         email_subject: formData.email_subject,
         email_template: formData.email_template,
         is_active: formData.is_active
@@ -333,28 +370,75 @@ function WorkflowEditor({ organizationId, workflow, onClose, onSuccess }: Workfl
               </select>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium">Recipient Email</label>
-                <Input
-                  type="email"
-                  value={formData.recipient_email}
-                  onChange={(e) => setFormData({ ...formData, recipient_email: e.target.value })}
-                  placeholder="admin@example.com"
-                  required
-                  data-testid="input-recipient-email"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Recipient Name (Optional)</label>
-                <Input
-                  value={formData.recipient_name}
-                  onChange={(e) => setFormData({ ...formData, recipient_name: e.target.value })}
-                  placeholder="Treasurer"
-                  data-testid="input-recipient-name"
-                />
-              </div>
+            <div>
+              <label className="text-sm font-medium">Recipient Type</label>
+              <select
+                value={formData.recipient_type}
+                onChange={(e) => setFormData({ ...formData, recipient_type: e.target.value as any })}
+                className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                data-testid="select-recipient-type"
+              >
+                <option value="email">Specific Email Address</option>
+                <option value="position">Committee Position Holder</option>
+                <option value="all_members">All Active Members</option>
+              </select>
             </div>
+
+            {formData.recipient_type === 'email' && (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">Recipient Email</label>
+                  <Input
+                    type="email"
+                    value={formData.recipient_email}
+                    onChange={(e) => setFormData({ ...formData, recipient_email: e.target.value })}
+                    placeholder="admin@example.com"
+                    required
+                    data-testid="input-recipient-email"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Recipient Name (Optional)</label>
+                  <Input
+                    value={formData.recipient_name}
+                    onChange={(e) => setFormData({ ...formData, recipient_name: e.target.value })}
+                    placeholder="Treasurer"
+                    data-testid="input-recipient-name"
+                  />
+                </div>
+              </div>
+            )}
+
+            {formData.recipient_type === 'position' && (
+              <div>
+                <label className="text-sm font-medium">Committee Position</label>
+                <select
+                  value={formData.recipient_position_id}
+                  onChange={(e) => setFormData({ ...formData, recipient_position_id: e.target.value })}
+                  className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                  data-testid="select-recipient-position"
+                >
+                  <option value="">Select a position...</option>
+                  {positions.map(position => (
+                    <option key={position.id} value={position.id}>
+                      {position.name}{position.description ? ` - ${position.description}` : ''}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Email will be sent to all members holding this position across all committees
+                </p>
+              </div>
+            )}
+
+            {formData.recipient_type === 'all_members' && (
+              <div className="p-4 bg-blue-50 rounded-md border border-blue-200">
+                <p className="text-sm text-blue-800">
+                  <strong>Note:</strong> This workflow will send an email to all active members in your organization. Use carefully to avoid spam.
+                </p>
+              </div>
+            )}
 
             <div>
               <label className="text-sm font-medium">Email Subject</label>
