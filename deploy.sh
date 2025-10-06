@@ -180,10 +180,18 @@ server {
         application/xml+rss
         application/json;
     
-    # Static file caching
+    # HTML files - NEVER cache
+    location ~* \.html$ {
+        add_header Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate";
+        add_header Pragma "no-cache";
+        add_header Expires "0";
+        try_files \$uri @proxy;
+    }
+    
+    # Static file caching - assets with hash in filename can be cached forever
     location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
         expires 1y;
-        add_header Cache-Control "public, immutable";
+        add_header Cache-Control "public, max-age=31536000, immutable";
         try_files \$uri @proxy;
     }
     
@@ -207,8 +215,12 @@ server {
         try_files \$uri @proxy;
     }
     
-    # Main proxy configuration
+    # Main proxy configuration - disable caching for HTML/dynamic content
     location / {
+        # Prevent caching of HTML and dynamic routes
+        add_header Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate";
+        add_header Pragma "no-cache";
+        add_header Expires "0";
         try_files \$uri @proxy;
     }
     
@@ -222,6 +234,7 @@ server {
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto \$scheme;
         proxy_cache_bypass \$http_upgrade;
+        proxy_no_cache 1;
         
         # Timeouts
         proxy_connect_timeout 60s;
