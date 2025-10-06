@@ -475,10 +475,27 @@ app.post('/api/send-workflow-email', async (req, res) => {
   }
 });
 
-// Serve static files from dist directory
+// Serve static files from dist directory with proper cache headers
 const distPath = path.join(__dirname, 'dist');
 if (fs.existsSync(distPath)) {
-  app.use(express.static(distPath));
+  app.use(express.static(distPath, {
+    maxAge: 0,
+    etag: true,
+    lastModified: true,
+    setHeaders: (res, filePath) => {
+      // Never cache HTML files
+      if (filePath.endsWith('.html')) {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+        res.setHeader('Surrogate-Control', 'no-store');
+      }
+      // Cache static assets with hash in filename for 1 year
+      else if (/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/.test(filePath)) {
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      }
+    }
+  }));
 } else {
   console.error('Dist directory not found:', distPath);
 }
@@ -487,6 +504,11 @@ if (fs.existsSync(distPath)) {
 app.use((req, res) => {
   const indexPath = path.join(__dirname, 'dist', 'index.html');
   if (fs.existsSync(indexPath)) {
+    // Set aggressive no-cache headers for index.html
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
     res.sendFile(indexPath);
   } else {
     res.status(500).send('Application not built. Please run npm run build.');
