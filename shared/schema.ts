@@ -143,3 +143,52 @@ export const renewalWorkflows = pgTable('renewal_workflows', {
   organizationIdIdx: index('idx_renewal_workflows_organization_id').on(table.organization_id),
 }));
 
+export const committees = pgTable('committees', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  organization_id: uuid('organization_id').references(() => organizations.id, { onDelete: 'cascade' }).notNull(),
+  name: text('name').notNull(),
+  description: text('description'),
+  slug: text('slug').notNull(),
+  mailing_list_id: text('mailing_list_id'),
+  is_active: boolean('is_active').default(true),
+  member_count: integer('member_count').default(0),
+  created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+}, (table) => ({
+  organizationIdIdx: index('idx_committees_organization_id').on(table.organization_id),
+  slugIdx: index('idx_committees_slug').on(table.slug),
+  orgSlugUnique: unique('committees_organization_id_slug_key').on(table.organization_id, table.slug),
+}));
+
+export const committeePositions = pgTable('committee_positions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  organization_id: uuid('organization_id').references(() => organizations.id, { onDelete: 'cascade' }).notNull(),
+  name: text('name').notNull(),
+  description: text('description'),
+  display_order: integer('display_order').default(0),
+  is_active: boolean('is_active').default(true),
+  created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+}, (table) => ({
+  organizationIdIdx: index('idx_committee_positions_organization_id').on(table.organization_id),
+  displayOrderIdx: index('idx_committee_positions_display_order').on(table.display_order),
+  orgNameUnique: unique('committee_positions_organization_id_name_key').on(table.organization_id, table.name),
+}));
+
+export const committeeMembers = pgTable('committee_members', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  committee_id: uuid('committee_id').references(() => committees.id, { onDelete: 'cascade' }).notNull(),
+  profile_id: uuid('profile_id').references(() => profiles.id, { onDelete: 'cascade' }).notNull(),
+  position_id: uuid('position_id').references(() => committeePositions.id, { onDelete: 'set null' }),
+  joined_at: timestamp('joined_at', { withTimezone: true }).defaultNow(),
+  end_date: date('end_date'),
+  notes: text('notes'),
+  created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+}, (table) => ({
+  committeeIdIdx: index('idx_committee_members_committee_id').on(table.committee_id),
+  profileIdIdx: index('idx_committee_members_profile_id').on(table.profile_id),
+  positionIdIdx: index('idx_committee_members_position_id').on(table.position_id),
+  committeeProfileUnique: unique('committee_members_committee_id_profile_id_position_id_key').on(table.committee_id, table.profile_id, table.position_id),
+}));
+
