@@ -9,6 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Download, Trash2, FileText, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { uploadDocument, deleteDocument, getOrganizationDocuments, downloadDocument, type Document } from '@/lib/storage/documents';
+import { supabase } from '@/lib/supabase/client';
 
 interface DocumentsManagerProps {
   organizationId: string;
@@ -24,10 +25,49 @@ export function DocumentsManager({ organizationId, userId }: DocumentsManagerPro
   const [documentDescription, setDocumentDescription] = useState('');
   const [documentCategory, setDocumentCategory] = useState<Document['category']>('general');
   const [isPublic, setIsPublic] = useState(false);
+  const [bucketExists, setBucketExists] = useState<boolean | null>(null);
 
   useEffect(() => {
-    loadDocuments();
-  }, [organizationId]);
+    checkBucket();
+  }, []);
+
+  useEffect(() => {
+    if (bucketExists) {
+      loadDocuments();
+    }
+  }, [organizationId, bucketExists]);
+
+  const checkBucket = async () => {
+    try {
+      // Try to list files in the bucket - this is a client-safe operation
+      const { error } = await supabase.storage
+        .from('documents')
+        .list('', { limit: 1 });
+      
+      if (error) {
+        // Check if error indicates bucket doesn't exist
+        if (error.message.includes('not found') || error.message.includes('does not exist')) {
+          console.warn('Documents bucket does not exist - manual setup required');
+          setBucketExists(false);
+          setLoading(false); // Stop loading to show warning banner
+        } else {
+          // Other errors (permissions, etc.) - assume bucket exists but there's an issue
+          console.error('Error checking bucket:', error);
+          setBucketExists(true); // Allow uploads to try and show real error
+          // Let loadDocuments handle loading state
+        }
+        return;
+      }
+
+      // Bucket exists if we got here without error
+      setBucketExists(true);
+      // Let loadDocuments handle loading state
+    } catch (error: any) {
+      console.error('Bucket check error:', error);
+      setBucketExists(false);
+      setLoading(false); // Stop loading to show warning banner
+    }
+  };
 
   const loadDocuments = async () => {
     try {
@@ -59,6 +99,11 @@ export function DocumentsManager({ organizationId, userId }: DocumentsManagerPro
   };
 
   const handleUpload = async () => {
+    if (bucketExists === false) {
+      toast.error('Document storage bucket not found. Please create the "documents" bucket in Supabase Storage settings.');
+      return;
+    }
+
     if (!selectedFile) {
       toast.error('Please select a file');
       return;
@@ -140,6 +185,32 @@ export function DocumentsManager({ organizationId, userId }: DocumentsManagerPro
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Document Library</h2>
       </div>
+
+      {bucketExists === false && (
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-yellow-700">
+                <strong>Storage Bucket Setup Required:</strong> The "documents" storage bucket needs to be created in your Supabase project.
+                {' '}Go to your Supabase Dashboard → Storage → Create a new bucket called "documents" with Public access enabled. 
+                <a 
+                  href="https://supabase.com/dashboard/project/_/storage/buckets" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="underline font-medium hover:text-yellow-800"
+                >
+                  Open Supabase Storage
+                </a>
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Card>
         <CardHeader>

@@ -30,10 +30,9 @@ export async function uploadDocument(
   options: UploadDocumentOptions
 ): Promise<Document> {
   try {
-    const fileExt = file.name.split('.').pop();
     const fileName = `${organizationId}/${Date.now()}-${file.name}`;
     
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from('documents')
       .upload(fileName, file);
 
