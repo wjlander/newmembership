@@ -127,6 +127,26 @@ CREATE TABLE IF NOT EXISTS email_workflows (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Add new columns if they don't exist (for existing tables)
+DO $$ 
+BEGIN
+  -- Add recipient_type column
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'email_workflows' AND column_name = 'recipient_type'
+  ) THEN
+    ALTER TABLE email_workflows ADD COLUMN recipient_type TEXT NOT NULL DEFAULT 'email';
+  END IF;
+  
+  -- Add recipient_position_id column
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'email_workflows' AND column_name = 'recipient_position_id'
+  ) THEN
+    ALTER TABLE email_workflows ADD COLUMN recipient_position_id UUID REFERENCES committee_positions(id) ON DELETE SET NULL;
+  END IF;
+END $$;
+
 CREATE INDEX IF NOT EXISTS idx_email_workflows_organization_id ON email_workflows(organization_id);
 CREATE INDEX IF NOT EXISTS idx_email_workflows_recipient_position_id ON email_workflows(recipient_position_id);
 
