@@ -1593,12 +1593,13 @@ function MembersAdminView({ organizationId }: MembersAdminViewProps) {
                       
                       // Reset state before loading to avoid stale selections
                       setSelectedMembershipTypes([]);
+                      setLinkedMemberNames({});
                       setLoadingFormResponse(true);
                       
                       try {
                         const { data: formResponse, error } = await supabase
                           .from('profile_form_responses')
-                          .select('selected_membership_types')
+                          .select('selected_membership_types, response_data')
                           .eq('profile_id', user.id)
                           .order('created_at', { ascending: false })
                           .limit(1)
@@ -1607,8 +1608,26 @@ function MembersAdminView({ organizationId }: MembersAdminViewProps) {
                         if (error) {
                           console.error('Error loading form response:', error);
                           toast.error('Could not load signup preferences');
-                        } else if (formResponse && formResponse.selected_membership_types) {
-                          setSelectedMembershipTypes(formResponse.selected_membership_types);
+                        } else if (formResponse) {
+                          if (formResponse.selected_membership_types) {
+                            setSelectedMembershipTypes(formResponse.selected_membership_types);
+                          }
+                          
+                          // Load linked member names from response_data
+                          if (formResponse.response_data && formResponse.response_data.linkedMemberNames) {
+                            const linkedNames = formResponse.response_data.linkedMemberNames;
+                            // Convert array format to single object format
+                            const convertedNames: Record<string, { firstName: string; lastName: string }> = {};
+                            Object.keys(linkedNames).forEach(typeId => {
+                              if (linkedNames[typeId] && linkedNames[typeId].length > 0) {
+                                convertedNames[typeId] = {
+                                  firstName: linkedNames[typeId][0].firstName || '',
+                                  lastName: linkedNames[typeId][0].lastName || ''
+                                };
+                              }
+                            });
+                            setLinkedMemberNames(convertedNames);
+                          }
                         }
                       } catch (err) {
                         console.error('Unexpected error loading form response:', err);
@@ -1631,12 +1650,13 @@ function MembersAdminView({ organizationId }: MembersAdminViewProps) {
                       
                       // Reset state before loading to avoid stale selections
                       setSelectedMembershipTypes([]);
+                      setLinkedMemberNames({});
                       setLoadingFormResponse(true);
                       
                       try {
                         const { data: formResponse, error } = await supabase
                           .from('profile_form_responses')
-                          .select('selected_membership_types')
+                          .select('selected_membership_types, response_data')
                           .eq('profile_id', user.id)
                           .order('created_at', { ascending: false })
                           .limit(1)
@@ -1645,8 +1665,26 @@ function MembersAdminView({ organizationId }: MembersAdminViewProps) {
                         if (error) {
                           console.error('Error loading form response:', error);
                           toast.error('Could not load signup preferences');
-                        } else if (formResponse && formResponse.selected_membership_types) {
-                          setSelectedMembershipTypes(formResponse.selected_membership_types);
+                        } else if (formResponse) {
+                          if (formResponse.selected_membership_types) {
+                            setSelectedMembershipTypes(formResponse.selected_membership_types);
+                          }
+                          
+                          // Load linked member names from response_data
+                          if (formResponse.response_data && formResponse.response_data.linkedMemberNames) {
+                            const linkedNames = formResponse.response_data.linkedMemberNames;
+                            // Convert array format to single object format
+                            const convertedNames: Record<string, { firstName: string; lastName: string }> = {};
+                            Object.keys(linkedNames).forEach(typeId => {
+                              if (linkedNames[typeId] && linkedNames[typeId].length > 0) {
+                                convertedNames[typeId] = {
+                                  firstName: linkedNames[typeId][0].firstName || '',
+                                  lastName: linkedNames[typeId][0].lastName || ''
+                                };
+                              }
+                            });
+                            setLinkedMemberNames(convertedNames);
+                          }
                         }
                       } catch (err) {
                         console.error('Unexpected error loading form response:', err);
@@ -9024,6 +9062,25 @@ If you have any questions, please don't hesitate to contact us.
 
 Best regards,
 {{organization_name}} Team`,
+    body_html: `<p>Dear {{first_name}} {{last_name}},</p>
+<p>Welcome to {{organization_name}}! We're thrilled to have you as a member.</p>
+<p><strong>Your membership details:</strong><br>
+- Type: {{membership_type}}<br>
+- Valid until: {{expiry_date}}</p>
+<p>If you have any questions, please don't hesitate to contact us.</p>
+<p>Best regards,<br>{{organization_name}} Team</p>`,
+    body_text: `Dear {{first_name}} {{last_name}},
+
+Welcome to {{organization_name}}! We're thrilled to have you as a member.
+
+Your membership details:
+- Type: {{membership_type}}
+- Valid until: {{expiry_date}}
+
+If you have any questions, please don't hesitate to contact us.
+
+Best regards,
+{{organization_name}} Team`,
     is_active: true,
     is_default: true,
   },
@@ -9033,6 +9090,21 @@ Best regards,
     description: 'Remind members to renew their membership',
     subject: 'Time to Renew Your Membership with {{organization_name}}',
     body: `Dear {{first_name}} {{last_name}},
+
+It's time to renew your {{membership_type}} membership with {{organization_name}}.
+
+Your current membership expires on {{expiry_date}}.
+
+Please renew your membership to continue enjoying all the benefits.
+
+Best regards,
+{{organization_name}} Team`,
+    body_html: `<p>Dear {{first_name}} {{last_name}},</p>
+<p>It's time to renew your {{membership_type}} membership with {{organization_name}}.</p>
+<p>Your current membership expires on {{expiry_date}}.</p>
+<p>Please renew your membership to continue enjoying all the benefits.</p>
+<p>Best regards,<br>{{organization_name}} Team</p>`,
+    body_text: `Dear {{first_name}} {{last_name}},
 
 It's time to renew your {{membership_type}} membership with {{organization_name}}.
 
@@ -9058,6 +9130,18 @@ Please renew soon to avoid any interruption in your membership benefits.
 
 Best regards,
 {{organization_name}} Team`,
+    body_html: `<p>Dear {{first_name}} {{last_name}},</p>
+<p>This is a reminder that your {{membership_type}} membership will expire on {{expiry_date}}.</p>
+<p>Please renew soon to avoid any interruption in your membership benefits.</p>
+<p>Best regards,<br>{{organization_name}} Team</p>`,
+    body_text: `Dear {{first_name}} {{last_name}},
+
+This is a reminder that your {{membership_type}} membership will expire on {{expiry_date}}.
+
+Please renew soon to avoid any interruption in your membership benefits.
+
+Best regards,
+{{organization_name}} Team`,
     is_active: true,
     is_default: true,
   },
@@ -9067,6 +9151,23 @@ Best regards,
     description: 'Reminder for upcoming events',
     subject: 'Reminder: {{event_title}} - {{event_date}}',
     body: `Dear {{first_name}} {{last_name}},
+
+This is a reminder about the upcoming event:
+
+Event: {{event_title}}
+Date: {{event_date}}
+
+We look forward to seeing you there!
+
+Best regards,
+{{organization_name}} Team`,
+    body_html: `<p>Dear {{first_name}} {{last_name}},</p>
+<p>This is a reminder about the upcoming event:</p>
+<p><strong>Event:</strong> {{event_title}}<br>
+<strong>Date:</strong> {{event_date}}</p>
+<p>We look forward to seeing you there!</p>
+<p>Best regards,<br>{{organization_name}} Team</p>`,
+    body_text: `Dear {{first_name}} {{last_name}},
 
 This is a reminder about the upcoming event:
 
