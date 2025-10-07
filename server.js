@@ -449,7 +449,7 @@ app.post('/api/send-workflow-email', async (req, res) => {
 
     // Send email via Resend
     const emailData = {
-      from: 'onboarding@resend.dev', // Default Resend sender for testing
+      from: 'support@ringing.org.uk', // Verified Resend domain
       to,
       subject,
       html: htmlBody || textBody,
@@ -607,7 +607,7 @@ app.post('/api/campaigns/send', authenticateRequest, async (req, res) => {
 
             // Send via Resend
             const result = await resend.emails.send({
-              from: 'onboarding@resend.dev', // TODO: Use organization's verified domain
+              from: 'support@ringing.org.uk', // Verified Resend domain
               to: subscriber.email,
               subject: campaign.subject,
               html: emailContent
@@ -757,7 +757,7 @@ app.post('/api/workflows/test', authenticateRequest, async (req, res) => {
 
     // Send test email via Resend
     const result = await resend.emails.send({
-      from: 'onboarding@resend.dev', // TODO: Use organization's verified domain
+      from: 'support@ringing.org.uk', // Verified Resend domain
       to: testEmail,
       subject: emailSubject,
       html: emailContent
