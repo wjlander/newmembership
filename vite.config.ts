@@ -31,5 +31,11 @@ export default defineConfig({
       clientPort: 443,
       protocol: 'wss',
     },
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
+    },
   },
 });
