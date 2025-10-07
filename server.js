@@ -541,7 +541,7 @@ app.post('/api/campaigns/send', authenticateRequest, async (req, res) => {
           status
         )
       `)
-      .eq('list_id', mailingListId)
+      .eq('mailing_list_id', mailingListId)
       .eq('status', 'subscribed');
 
     if (subscribersError) {
