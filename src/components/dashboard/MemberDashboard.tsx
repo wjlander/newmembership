@@ -92,7 +92,7 @@ export function MemberDashboard() {
   const [memberships, setMemberships] = useState<Membership[]>([])
   const [membershipTypes, setMembershipTypes] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeView, setActiveView] = useState<'dashboard' | 'profile' | 'events' | 'messages' | 'subscriptions' | 'committees' | 'badges' | 'documents' | 'admin-members' | 'admin-settings' | 'admin-mailing' | 'admin-forms' | 'admin-memberships' | 'admin-workflows' | 'admin-event-registrations' | 'admin-committees' | 'admin-committee-positions' | 'admin-analytics' | 'admin-badges' | 'admin-reminders' | 'admin-reports' | 'admin-email-templates' | 'admin-documents'>('dashboard')
+  const [activeView, setActiveView] = useState<'dashboard' | 'profile' | 'events' | 'messages' | 'subscriptions' | 'committees' | 'badges' | 'documents' | 'admin-members' | 'admin-settings' | 'admin-mailing' | 'admin-forms' | 'admin-memberships' | 'admin-workflows' | 'admin-events' | 'admin-event-registrations' | 'admin-committees' | 'admin-committee-positions' | 'admin-analytics' | 'admin-badges' | 'admin-reminders' | 'admin-reports' | 'admin-email-templates' | 'admin-documents'>('dashboard')
   const [showRenewalModal, setShowRenewalModal] = useState(false)
   const [exportingMemberships, setExportingMemberships] = useState(false)
 
@@ -314,6 +314,19 @@ export function MemberDashboard() {
             >
               Dashboard
             </button>
+            {(organization?.settings?.features?.events_enabled !== false) && (
+              <button
+                onClick={() => setActiveView('events')}
+                className={`pb-3 px-1 border-b-2 font-medium text-sm ${
+                  activeView === 'events'
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+                data-testid="tab-events"
+              >
+                Events
+              </button>
+            )}
             {(organization?.settings?.features?.mailing_lists_enabled !== false) && (
               <button
                 onClick={() => setActiveView('subscriptions')}
@@ -397,6 +410,9 @@ export function MemberDashboard() {
                     )}
                     {(isAdmin || hasPermission('manage_emails')) && (
                       <SelectItem value="admin-email-templates">Email Templates</SelectItem>
+                    )}
+                    {(isAdmin || hasPermission('manage_events')) && (
+                      <SelectItem value="admin-events">Events Management</SelectItem>
                     )}
                     {(isAdmin || hasPermission('manage_events')) && (
                       <SelectItem value="admin-event-registrations">Event Registrations</SelectItem>
@@ -731,6 +747,11 @@ export function MemberDashboard() {
       {/* Admin - Email Workflows View */}
       {activeView === 'admin-workflows' && (isAdmin || hasPermission('manage_emails')) && organization && (
         <EmailWorkflowsManager organizationId={organization.id} />
+      )}
+
+      {/* Admin - Events Management View */}
+      {activeView === 'admin-events' && (isAdmin || hasPermission('manage_events')) && organization && user?.profile?.id && (
+        <EventsView organizationId={organization.id} profileId={user.profile.id} onBack={() => setActiveView('dashboard')} />
       )}
 
       {/* Admin - Event Registrations View */}
@@ -6257,16 +6278,30 @@ interface CommitteeMembership {
   committee: Committee;
 }
 
+interface CommitteeMember {
+  id: string;
+  profile_id: string;
+  position_id: string | null;
+  profiles: {
+    first_name: string;
+    last_name: string;
+  };
+  committee_positions: {
+    name: string;
+  } | null;
+}
+
 function MemberCommitteesView({ organizationId, profileId }: MemberCommitteesViewProps) {
   const [allCommittees, setAllCommittees] = useState<Committee[]>([]);
   const [userMemberships, setUserMemberships] = useState<CommitteeMembership[]>([]);
+  const [committeeMembers, setCommitteeMembers] = useState<Record<string, CommitteeMember[]>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchCommittees = async () => {
       setLoading(true);
       try {
-        const [committeesResponse, membershipsResponse] = await Promise.all([
+        const [committeesResponse, membershipsResponse, allMembersResponse] = await Promise.all([
           supabase
             .from('committees')
             .select('*')
@@ -6276,14 +6311,36 @@ function MemberCommitteesView({ organizationId, profileId }: MemberCommitteesVie
           supabase
             .from('committee_members')
             .select('committee_id, role, committees(*)')
-            .eq('profile_id', profileId)
+            .eq('profile_id', profileId),
+          supabase
+            .from('committee_members')
+            .select(`
+              id,
+              committee_id,
+              profile_id,
+              position_id,
+              profiles!inner(first_name, last_name),
+              committee_positions(name)
+            `)
+            .order('id')
         ]);
 
         if (committeesResponse.error) throw committeesResponse.error;
         if (membershipsResponse.error) throw membershipsResponse.error;
+        if (allMembersResponse.error) throw allMembersResponse.error;
 
         setAllCommittees(committeesResponse.data || []);
         setUserMemberships(membershipsResponse.data as any || []);
+
+        // Group members by committee
+        const membersByCommittee: Record<string, CommitteeMember[]> = {};
+        (allMembersResponse.data || []).forEach((member: any) => {
+          if (!membersByCommittee[member.committee_id]) {
+            membersByCommittee[member.committee_id] = [];
+          }
+          membersByCommittee[member.committee_id].push(member);
+        });
+        setCommitteeMembers(membersByCommittee);
       } catch (error) {
         console.error('Error fetching committees:', error);
         toast.error('Failed to load committees');
@@ -6343,11 +6400,25 @@ function MemberCommitteesView({ organizationId, profileId }: MemberCommitteesVie
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-sm text-gray-600">
-                      <p className="flex items-center gap-2">
-                        <User className="h-4 w-4" />
-                        <span data-testid={`member-count-${committee.id}`}>{committee.member_count} member{committee.member_count !== 1 ? 's' : ''}</span>
-                      </p>
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        <Users className="h-4 w-4" />
+                        Committee Members ({committeeMembers[committee.id]?.length || 0})
+                      </h4>
+                      {committeeMembers[committee.id] && committeeMembers[committee.id].length > 0 ? (
+                        <div className="space-y-1">
+                          {committeeMembers[committee.id].map((member) => (
+                            <div key={member.id} className="text-sm text-gray-600 flex items-center justify-between py-1 px-2 bg-gray-50 rounded">
+                              <span>{member.profiles.first_name} {member.profiles.last_name}</span>
+                              {member.committee_positions && (
+                                <Badge variant="outline" className="text-xs">{member.committee_positions.name}</Badge>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-500 italic">No members assigned</p>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -6387,11 +6458,25 @@ function MemberCommitteesView({ organizationId, profileId }: MemberCommitteesVie
                   <CardDescription>{committee.description || 'No description'}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-sm text-gray-600">
-                    <p className="flex items-center gap-2">
-                      <User className="h-4 w-4" />
-                      <span data-testid={`other-member-count-${committee.id}`}>{committee.member_count} member{committee.member_count !== 1 ? 's' : ''}</span>
-                    </p>
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      Committee Members ({committeeMembers[committee.id]?.length || 0})
+                    </h4>
+                    {committeeMembers[committee.id] && committeeMembers[committee.id].length > 0 ? (
+                      <div className="space-y-1">
+                        {committeeMembers[committee.id].map((member) => (
+                          <div key={member.id} className="text-sm text-gray-600 flex items-center justify-between py-1 px-2 bg-gray-50 rounded">
+                            <span>{member.profiles.first_name} {member.profiles.last_name}</span>
+                            {member.committee_positions && (
+                              <Badge variant="outline" className="text-xs">{member.committee_positions.name}</Badge>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500 italic">No members assigned</p>
+                    )}
                   </div>
                 </CardContent>
               </Card>
