@@ -7,6 +7,10 @@ A comprehensive membership management system for multiple organizations with com
 ## Recent Changes
 
 **2025-10-07**:
+- Fixed email campaign sending to mailing lists - configured dual-server development setup (Vite + Express)
+- Added Vite API proxy to forward `/api/*` requests to Express backend (port 3000)
+- Updated dev workflow to run both Vite (port 5000) and Express (port 3000) servers concurrently
+- Created `email_workflows` table for automated member notification system
 - Added Events navigation button to member dashboard menu (feature-toggle controlled)
 - Added Events Management option to admin dropdown menu
 - Enhanced Committees view to display member names with their positions instead of just member count
