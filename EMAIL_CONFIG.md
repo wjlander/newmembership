@@ -5,7 +5,7 @@
 ### Current "From" Email Address
 The system currently uses the following "from" address for all outgoing emails:
 
-**Email Address:** `support@ringing.org.uk`
+**Email Address:** `noreply@support.ringing.org.uk`
 
 This email address must be from a **verified domain** in your Resend account.
 
@@ -26,23 +26,23 @@ Update the `from` address in **`server.js`** in these 3 locations:
 
 #### Location 1: Member Welcome Emails (line ~452)
 ```javascript
-from: 'support@ringing.org.uk', // Verified Resend domain
+from: 'noreply@support.ringing.org.uk', // Verified Resend domain
 ```
 
 #### Location 2: Campaign Emails (line ~610)
 ```javascript
-from: 'support@ringing.org.uk', // Verified Resend domain
+from: 'noreply@support.ringing.org.uk', // Verified Resend domain
 ```
 
 #### Location 3: Email Workflow Test Emails (line ~760)
 ```javascript
-from: 'support@ringing.org.uk', // Verified Resend domain
+from: 'noreply@support.ringing.org.uk', // Verified Resend domain
 ```
 
 ### 3. Search and Replace
 Use this command to find all occurrences:
 ```bash
-grep -r "support@ringing.org.uk" server.js
+grep -r "noreply@support.ringing.org.uk" server.js
 ```
 
 Then replace with your new email address.
@@ -55,12 +55,12 @@ For easier configuration management, consider using an environment variable:
 
 1. Add to `.env`:
    ```
-   RESEND_FROM_EMAIL=support@ringing.org.uk
+   RESEND_FROM_EMAIL=noreply@support.ringing.org.uk
    ```
 
 2. Update code to use:
    ```javascript
-   from: process.env.RESEND_FROM_EMAIL || 'support@ringing.org.uk',
+   from: process.env.RESEND_FROM_EMAIL || 'noreply@support.ringing.org.uk',
    ```
 
 This allows changing the email address without modifying code.
@@ -81,8 +81,8 @@ This allows changing the email address without modifying code.
 ## Resend Account Details
 
 - **Service:** [Resend](https://resend.com)
-- **Current Verified Domain:** `ringing.org.uk`
+- **Current Verified Domain:** `support.ringing.org.uk`
 - **API Key Location:** Environment variable `RESEND_API_KEY`
-- **Current From Address:** `support@ringing.org.uk`
+- **Current From Address:** `noreply@support.ringing.org.uk`
 
 **Note:** Resend restricts sending to verified emails only until a domain is verified. With a verified domain, you can send to any email address.
