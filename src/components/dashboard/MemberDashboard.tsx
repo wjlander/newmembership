@@ -310,39 +310,45 @@ export function MemberDashboard() {
             >
               Dashboard
             </button>
-            <button
-              onClick={() => setActiveView('subscriptions')}
-              className={`pb-3 px-1 border-b-2 font-medium text-sm ${
-                activeView === 'subscriptions'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-              data-testid="tab-subscriptions"
-            >
-              Mailing Lists
-            </button>
-            <button
-              onClick={() => setActiveView('committees')}
-              className={`pb-3 px-1 border-b-2 font-medium text-sm ${
-                activeView === 'committees'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-              data-testid="tab-committees"
-            >
-              Committees
-            </button>
-            <button
-              onClick={() => setActiveView('badges')}
-              className={`pb-3 px-1 border-b-2 font-medium text-sm ${
-                activeView === 'badges'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-              data-testid="tab-badges"
-            >
-              Badges
-            </button>
+            {(organization?.settings?.features?.mailing_lists_enabled !== false) && (
+              <button
+                onClick={() => setActiveView('subscriptions')}
+                className={`pb-3 px-1 border-b-2 font-medium text-sm ${
+                  activeView === 'subscriptions'
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+                data-testid="tab-subscriptions"
+              >
+                Mailing Lists
+              </button>
+            )}
+            {(organization?.settings?.features?.committees_enabled !== false) && (
+              <button
+                onClick={() => setActiveView('committees')}
+                className={`pb-3 px-1 border-b-2 font-medium text-sm ${
+                  activeView === 'committees'
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+                data-testid="tab-committees"
+              >
+                Committees
+              </button>
+            )}
+            {(organization?.settings?.features?.badges_enabled !== false) && (
+              <button
+                onClick={() => setActiveView('badges')}
+                className={`pb-3 px-1 border-b-2 font-medium text-sm ${
+                  activeView === 'badges'
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+                data-testid="tab-badges"
+              >
+                Badges
+              </button>
+            )}
             <button
               onClick={() => setActiveView('documents')}
               className={`pb-3 px-1 border-b-2 font-medium text-sm ${
@@ -518,7 +524,7 @@ export function MemberDashboard() {
       </div>
 
       {/* Digital Membership Cards */}
-      {currentMembership && (
+      {currentMembership && (organization?.settings?.features?.digital_cards_enabled !== false) && (
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -991,7 +997,7 @@ function RenewalModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b sticky top-0 bg-white z-10">
           <div className="flex items-center justify-between">
@@ -2329,7 +2335,7 @@ function AddDomainModal({ organizationId, onClose, onSuccess }: AddDomainModalPr
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Add Custom Domain</h2>
@@ -2385,6 +2391,7 @@ interface SettingsAdminViewProps {
 }
 
 function SettingsAdminView({ organization }: SettingsAdminViewProps) {
+  const orgSettings = organization.settings || {};
   const [formData, setFormData] = useState({
     name: organization.name || '',
     contact_email: organization.contact_email || '',
@@ -2394,7 +2401,14 @@ function SettingsAdminView({ organization }: SettingsAdminViewProps) {
     membership_year_start_month: organization.membership_year_start_month || 1,
     membership_year_end_month: organization.membership_year_end_month || 12,
     renewal_enabled: organization.renewal_enabled !== undefined ? organization.renewal_enabled : true,
-    renewal_form_schema_id: organization.renewal_form_schema_id || null
+    renewal_form_schema_id: organization.renewal_form_schema_id || null,
+    // Feature toggles
+    features: {
+      badges_enabled: orgSettings.features?.badges_enabled !== false,
+      digital_cards_enabled: orgSettings.features?.digital_cards_enabled !== false,
+      committees_enabled: orgSettings.features?.committees_enabled !== false,
+      mailing_lists_enabled: orgSettings.features?.mailing_lists_enabled !== false
+    }
   });
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
@@ -2519,6 +2533,10 @@ function SettingsAdminView({ organization }: SettingsAdminViewProps) {
           membership_year_end_month: formData.membership_year_end_month,
           renewal_enabled: formData.renewal_enabled,
           renewal_form_schema_id: formData.renewal_form_schema_id,
+          settings: {
+            ...orgSettings,
+            features: formData.features
+          },
           updated_at: new Date().toISOString()
         })
         .eq('id', organization.id);
@@ -2738,6 +2756,102 @@ function SettingsAdminView({ organization }: SettingsAdminViewProps) {
           </div>
         </div>
 
+        <div className="pt-6 border-t">
+          <h3 className="text-lg font-semibold mb-4">Feature Management</h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Control which features are visible to your members. Disabled features won't appear in the navigation or on member dashboards.
+          </p>
+          <div className="space-y-3">
+            <div className="flex items-start gap-3">
+              <Checkbox
+                id="badges-enabled"
+                checked={formData.features.badges_enabled}
+                onCheckedChange={(checked) => 
+                  setFormData({
+                    ...formData,
+                    features: { ...formData.features, badges_enabled: checked as boolean }
+                  })
+                }
+                data-testid="checkbox-badges-enabled"
+              />
+              <div className="flex-1">
+                <label htmlFor="badges-enabled" className="text-sm font-medium cursor-pointer">
+                  Badges & Achievements
+                </label>
+                <p className="text-xs text-gray-500">
+                  Allow admins to create and award badges to members for achievements and milestones
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <Checkbox
+                id="digital-cards-enabled"
+                checked={formData.features.digital_cards_enabled}
+                onCheckedChange={(checked) => 
+                  setFormData({
+                    ...formData,
+                    features: { ...formData.features, digital_cards_enabled: checked as boolean }
+                  })
+                }
+                data-testid="checkbox-digital-cards-enabled"
+              />
+              <div className="flex-1">
+                <label htmlFor="digital-cards-enabled" className="text-sm font-medium cursor-pointer">
+                  Digital Membership Cards
+                </label>
+                <p className="text-xs text-gray-500">
+                  Enable Google Wallet and Apple Wallet digital membership cards with QR codes
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <Checkbox
+                id="committees-enabled"
+                checked={formData.features.committees_enabled}
+                onCheckedChange={(checked) => 
+                  setFormData({
+                    ...formData,
+                    features: { ...formData.features, committees_enabled: checked as boolean }
+                  })
+                }
+                data-testid="checkbox-committees-enabled"
+              />
+              <div className="flex-1">
+                <label htmlFor="committees-enabled" className="text-sm font-medium cursor-pointer">
+                  Committees Management
+                </label>
+                <p className="text-xs text-gray-500">
+                  Allow members to view committees and committee members
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <Checkbox
+                id="mailing-lists-enabled"
+                checked={formData.features.mailing_lists_enabled}
+                onCheckedChange={(checked) => 
+                  setFormData({
+                    ...formData,
+                    features: { ...formData.features, mailing_lists_enabled: checked as boolean }
+                  })
+                }
+                data-testid="checkbox-mailing-lists-enabled"
+              />
+              <div className="flex-1">
+                <label htmlFor="mailing-lists-enabled" className="text-sm font-medium cursor-pointer">
+                  Mailing List Subscriptions
+                </label>
+                <p className="text-xs text-gray-500">
+                  Allow members to subscribe to mailing lists and receive newsletters
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="flex justify-end pt-6">
           <Button onClick={handleSave} disabled={saving} data-testid="button-save-settings">
             {saving ? 'Saving...' : 'Save Changes'}
@@ -2823,7 +2937,7 @@ function AddMemberModal({ organizationId, onClose, onSuccess }: AddMemberModalPr
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" data-testid="modal-add-member">
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" data-testid="modal-add-member">
       <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <CardHeader className="pb-4">
           <CardTitle className="text-2xl">Add New Member</CardTitle>
@@ -3010,7 +3124,7 @@ function EditMemberModal({ member, onClose, onSuccess }: EditMemberModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" data-testid="modal-edit-member">
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50" data-testid="modal-edit-member">
       <Card className="w-full max-w-md mx-4">
         <CardHeader>
           <CardTitle>Edit Member</CardTitle>
@@ -3253,7 +3367,7 @@ function MemberNotesModal({ member, organizationId, onClose }: MemberNotesModalP
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" data-testid="modal-member-notes" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" data-testid="modal-member-notes" onClick={onClose}>
       <Card className="w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
         <CardHeader className="border-b">
           <div className="flex items-center justify-between">
@@ -4784,7 +4898,7 @@ function CreateEditListModal({ organizationId, list, onClose, onSuccess }: Creat
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>{list ? 'Edit Mailing List' : 'Create Mailing List'}</CardTitle>
@@ -5096,7 +5210,7 @@ function AddSubscriberModal({ organizationId, onClose, onSuccess }: AddSubscribe
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" data-testid="modal-add-subscriber">
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50" data-testid="modal-add-subscriber">
       <Card className="w-full max-w-md mx-4">
         <CardHeader>
           <CardTitle>Add Subscriber</CardTitle>
@@ -5333,7 +5447,7 @@ function CreateCampaignModal({ organizationId, onClose, onSuccess }: CreateCampa
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto" data-testid="modal-create-campaign">
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 overflow-y-auto" data-testid="modal-create-campaign">
       <Card className="w-full max-w-2xl mx-4 my-8">
         <CardHeader>
           <CardTitle>Create Email Campaign</CardTitle>
@@ -6506,7 +6620,7 @@ function CreateCommitteeModal({ organizationId, mailingLists, onClose, onSuccess
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" data-testid="create-committee-modal">
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50" data-testid="create-committee-modal">
       <div className="bg-white rounded-lg p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Create Committee</h2>
@@ -6647,7 +6761,7 @@ function EditCommitteeModal({ committee, mailingLists, onClose, onSuccess }: Edi
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" data-testid="edit-committee-modal">
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50" data-testid="edit-committee-modal">
       <div className="bg-white rounded-lg p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Edit Committee</h2>
@@ -6892,7 +7006,7 @@ function CommitteeMembersModal({ committee, organizationId, onClose, onSuccess }
   );
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" data-testid="committee-members-modal">
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50" data-testid="committee-members-modal">
       <div className="bg-white rounded-lg p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
           <div>
@@ -7251,7 +7365,7 @@ function CreatePositionModal({ organizationId, onClose, onSuccess }: CreatePosit
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" data-testid="create-position-modal">
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50" data-testid="create-position-modal">
       <div className="bg-white rounded-lg p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Create Committee Position</h2>
@@ -7352,7 +7466,7 @@ function EditPositionModal({ position, onClose, onSuccess }: EditPositionModalPr
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" data-testid="edit-position-modal">
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50" data-testid="edit-position-modal">
       <div className="bg-white rounded-lg p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Edit Committee Position</h2>
@@ -7963,7 +8077,7 @@ function CreateEditBadgeModal({ organizationId, badge, onClose, onSuccess }: Cre
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" data-testid="modal-create-edit-badge">
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" data-testid="modal-create-edit-badge">
       <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <CardHeader>
           <CardTitle>{badge ? 'Edit Badge' : 'Create New Badge'}</CardTitle>
@@ -8163,7 +8277,7 @@ function AwardBadgeModal({ organizationId, badge, onClose, onSuccess }: AwardBad
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" data-testid="modal-award-badge">
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" data-testid="modal-award-badge">
       <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <CardHeader>
           <CardTitle>Award Badge: {badge.name}</CardTitle>
@@ -8307,7 +8421,7 @@ function ViewBadgeMembersModal({ badge, onClose, onSuccess }: ViewBadgeMembersMo
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" data-testid="modal-view-badge-members">
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" data-testid="modal-view-badge-members">
       <Card className="w-full max-w-3xl max-h-[90vh] overflow-y-auto">
         <CardHeader>
           <CardTitle>Members with Badge: {badge.name}</CardTitle>
@@ -9175,7 +9289,7 @@ function ReminderFormModal({ organizationId, reminder, onClose, onSuccess }: Rem
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <Card className="w-full max-w-3xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <CardHeader>
           <CardTitle data-testid="modal-title-reminder">
@@ -9368,7 +9482,7 @@ function ReminderLogsModal({ reminderId, reminderName, onClose }: ReminderLogsMo
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <Card className="w-full max-w-5xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <CardHeader>
           <CardTitle data-testid="modal-title-logs">Reminder Logs: {reminderName}</CardTitle>
@@ -10074,7 +10188,7 @@ function EmailTemplatesView({ organizationId, profileId }: EmailTemplatesViewPro
       )}
 
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
           <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <CardHeader>
               <CardTitle>Create Email Template</CardTitle>
@@ -10204,7 +10318,7 @@ function EmailTemplatesView({ organizationId, profileId }: EmailTemplatesViewPro
       )}
 
       {showEditModal && selectedTemplate && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
           <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <CardHeader>
               <CardTitle>Edit Email Template</CardTitle>
@@ -10334,7 +10448,7 @@ function EmailTemplatesView({ organizationId, profileId }: EmailTemplatesViewPro
       )}
 
       {showPreviewModal && selectedTemplate && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
           <Card className="w-full max-w-3xl max-h-[90vh] overflow-y-auto">
             <CardHeader>
               <CardTitle>Template Preview: {selectedTemplate.name}</CardTitle>
@@ -10930,7 +11044,7 @@ function CustomReportsView({ organizationId, profileId }: CustomReportsViewProps
 
       {/* Create Report Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
           <Card className="w-full max-w-3xl max-h-[90vh] overflow-y-auto">
             <CardHeader>
               <CardTitle>Create New Report</CardTitle>
@@ -11112,7 +11226,7 @@ function CustomReportsView({ organizationId, profileId }: CustomReportsViewProps
 
       {/* Edit Report Modal */}
       {showEditModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
           <Card className="w-full max-w-3xl max-h-[90vh] overflow-y-auto">
             <CardHeader>
               <CardTitle>Edit Report</CardTitle>
@@ -11295,7 +11409,7 @@ function CustomReportsView({ organizationId, profileId }: CustomReportsViewProps
 
       {/* Results Modal */}
       {showResultsModal && selectedReport && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
           <Card className="w-full max-w-6xl max-h-[90vh] overflow-y-auto">
             <CardHeader>
               <div className="flex items-center justify-between">

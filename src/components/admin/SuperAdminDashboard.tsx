@@ -483,7 +483,7 @@ function CreateOrganizationModal({ onClose, onSuccess }: CreateOrganizationModal
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
       <Card className="w-full max-w-md mx-4">
         <CardHeader>
           <CardTitle>Create New Organization</CardTitle>
@@ -600,7 +600,7 @@ function EditOrganizationModal({ organization, onClose, onSave, loading }: EditO
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" data-testid="modal-edit-organization">
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50" data-testid="modal-edit-organization">
       <Card className="w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
         <CardHeader>
           <CardTitle>Edit Organization</CardTitle>
@@ -769,7 +769,7 @@ function ViewOrganizationModal({ organization, onClose }: ViewOrganizationModalP
   );
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" data-testid="modal-view-organization">
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" data-testid="modal-view-organization">
       <Card className="w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         <CardHeader>
           <CardTitle>{organization.name}</CardTitle>
@@ -893,7 +893,7 @@ interface DeleteConfirmModalProps {
 
 function DeleteConfirmModal({ organizationName, onConfirm, onCancel, loading }: DeleteConfirmModalProps) {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" data-testid="modal-delete-confirm">
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50" data-testid="modal-delete-confirm">
       <Card className="w-full max-w-md mx-4">
         <CardHeader>
           <CardTitle className="text-red-600">Deactivate Organization</CardTitle>

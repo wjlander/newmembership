@@ -148,6 +148,24 @@ CREATE POLICY "committee_members_update_policy" ON committee_members
         profiles.role = 'super_admin'
       )
     )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.user_id = auth.uid()
+      AND profiles.role IN ('admin', 'super_admin')
+      AND (
+        -- Regular admin: same organization
+        (profiles.role = 'admin' AND EXISTS (
+          SELECT 1 FROM committees
+          WHERE committees.id = committee_members.committee_id
+          AND committees.organization_id = profiles.organization_id
+        ))
+        OR
+        -- Super admin: any organization
+        profiles.role = 'super_admin'
+      )
+    )
   );
 
 -- DELETE: Admins and super admins can remove committee members
