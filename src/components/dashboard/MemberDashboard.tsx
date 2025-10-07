@@ -183,8 +183,8 @@ export function MemberDashboard() {
   const currentMembership = memberships.find(m => {
     const now = new Date()
     const endDate = new Date(m.end_date)
-    // Only show primary user's membership in Active Membership card
-    return m.profile_id === user?.profile?.id && m.status === 'active' && endDate >= now
+    // Show active membership for any of the user's profiles (primary or linked)
+    return m.status === 'active' && endDate >= now
   })
 
   const getStatusBadge = (status: string) => {
@@ -300,85 +300,84 @@ export function MemberDashboard() {
       </div>
 
       {/* Tab Navigation */}
-      {(isAdmin || activeView !== 'dashboard') && (
-        <div className="mb-6 border-b border-gray-200">
-          <nav className="flex gap-4 items-center">
+      <div className="mb-6 border-b border-gray-200">
+        <nav className="flex gap-4 items-center">
+          <button
+            onClick={() => setActiveView('dashboard')}
+            className={`pb-3 px-1 border-b-2 font-medium text-sm ${
+              activeView === 'dashboard'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+            data-testid="tab-dashboard"
+          >
+            Dashboard
+          </button>
+          {(organization?.settings?.features?.events_enabled !== false) && (
             <button
-              onClick={() => setActiveView('dashboard')}
+              onClick={() => setActiveView('events')}
               className={`pb-3 px-1 border-b-2 font-medium text-sm ${
-                activeView === 'dashboard'
+                activeView === 'events'
                   ? 'border-blue-600 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
-              data-testid="tab-dashboard"
+              data-testid="tab-events"
             >
-              Dashboard
+              Events
             </button>
-            {(organization?.settings?.features?.events_enabled !== false) && (
-              <button
-                onClick={() => setActiveView('events')}
-                className={`pb-3 px-1 border-b-2 font-medium text-sm ${
-                  activeView === 'events'
-                    ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-                data-testid="tab-events"
-              >
-                Events
-              </button>
-            )}
-            {(organization?.settings?.features?.mailing_lists_enabled !== false) && (
-              <button
-                onClick={() => setActiveView('subscriptions')}
-                className={`pb-3 px-1 border-b-2 font-medium text-sm ${
-                  activeView === 'subscriptions'
-                    ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-                data-testid="tab-subscriptions"
-              >
-                Mailing Lists
-              </button>
-            )}
-            {(organization?.settings?.features?.committees_enabled !== false) && (
-              <button
-                onClick={() => setActiveView('committees')}
-                className={`pb-3 px-1 border-b-2 font-medium text-sm ${
-                  activeView === 'committees'
-                    ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-                data-testid="tab-committees"
-              >
-                Committees
-              </button>
-            )}
-            {(organization?.settings?.features?.badges_enabled !== false) && (
-              <button
-                onClick={() => setActiveView('badges')}
-                className={`pb-3 px-1 border-b-2 font-medium text-sm ${
-                  activeView === 'badges'
-                    ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-                data-testid="tab-badges"
-              >
-                Badges
-              </button>
-            )}
+          )}
+          {(organization?.settings?.features?.mailing_lists_enabled !== false) && (
             <button
-              onClick={() => setActiveView('documents')}
+              onClick={() => setActiveView('subscriptions')}
               className={`pb-3 px-1 border-b-2 font-medium text-sm ${
-                activeView === 'documents'
+                activeView === 'subscriptions'
                   ? 'border-blue-600 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
-              data-testid="tab-documents"
+              data-testid="tab-subscriptions"
             >
-              Documents
+              Mailing Lists
             </button>
-            {(isAdmin || hasPermission('approve_members') || hasPermission('manage_members') || hasPermission('manage_settings') || hasPermission('manage_committees') || hasPermission('view_reports')) && (
-              <div className="ml-auto">
+          )}
+          {(organization?.settings?.features?.committees_enabled !== false) && (
+            <button
+              onClick={() => setActiveView('committees')}
+              className={`pb-3 px-1 border-b-2 font-medium text-sm ${
+                activeView === 'committees'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+              data-testid="tab-committees"
+            >
+              Committees
+            </button>
+          )}
+          {(organization?.settings?.features?.badges_enabled !== false) && (
+            <button
+              onClick={() => setActiveView('badges')}
+              className={`pb-3 px-1 border-b-2 font-medium text-sm ${
+                activeView === 'badges'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+              data-testid="tab-badges"
+            >
+              Badges
+            </button>
+          )}
+          <button
+            onClick={() => setActiveView('documents')}
+            className={`pb-3 px-1 border-b-2 font-medium text-sm ${
+              activeView === 'documents'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+            data-testid="tab-documents"
+          >
+            Documents
+          </button>
+          {(isAdmin || hasPermission('approve_members') || hasPermission('manage_members') || hasPermission('manage_settings') || hasPermission('manage_committees') || hasPermission('view_reports')) && (
+            <div className="ml-auto">
                 <Select
                   value={activeView.startsWith('admin-') ? activeView : ''}
                   onValueChange={(value) => setActiveView(value as typeof activeView)}
@@ -440,11 +439,10 @@ export function MemberDashboard() {
                     )}
                   </SelectContent>
                 </Select>
-              </div>
-            )}
-          </nav>
-        </div>
-      )}
+            </div>
+          )}
+        </nav>
+      </div>
 
       {/* Dashboard View */}
       {activeView === 'dashboard' && (
