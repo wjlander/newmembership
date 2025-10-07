@@ -475,6 +475,235 @@ app.post('/api/send-workflow-email', async (req, res) => {
   }
 });
 
+// Send email campaign to mailing list subscribers
+app.post('/api/campaigns/send', authenticateRequest, async (req, res) => {
+  try {
+    const { campaignId } = req.body;
+
+    if (!campaignId) {
+      return res.status(400).json({ error: 'Campaign ID is required' });
+    }
+
+    // Check if Resend is configured
+    if (!resend) {
+      return res.status(500).json({ 
+        error: 'Email service not configured',
+        message: 'RESEND_API_KEY is not set in environment variables'
+      });
+    }
+
+    const supabaseClient = req.supabase;
+
+    // Get campaign details
+    const { data: campaign, error: campaignError } = await supabaseClient
+      .from('email_campaigns')
+      .select('*')
+      .eq('id', campaignId)
+      .single();
+
+    if (campaignError || !campaign) {
+      return res.status(404).json({ error: 'Campaign not found' });
+    }
+
+    // Check authorization - user must be admin of campaign's organization
+    if (req.user.profile.organization_id !== campaign.organization_id && req.user.profile.role !== 'super_admin') {
+      return res.status(403).json({ error: 'Not authorized to send this campaign' });
+    }
+
+    // Check if campaign is in draft status
+    if (campaign.status !== 'draft') {
+      return res.status(400).json({ 
+        error: 'Campaign already sent or in progress',
+        status: campaign.status 
+      });
+    }
+
+    // Get mailing list ID from campaign
+    const mailingListId = campaign.mailing_list_id;
+    
+    if (!mailingListId) {
+      return res.status(400).json({ 
+        error: 'Campaign has no mailing list assigned',
+        message: 'Please assign a mailing list to this campaign before sending'
+      });
+    }
+
+    // Get all subscribed subscribers from the mailing list
+    const { data: subscriberListRecords, error: subscribersError } = await supabaseClient
+      .from('subscriber_lists')
+      .select(`
+        subscriber_id,
+        email_subscribers (
+          id,
+          email,
+          first_name,
+          last_name,
+          status
+        )
+      `)
+      .eq('list_id', mailingListId)
+      .eq('status', 'subscribed');
+
+    if (subscribersError) {
+      console.error('Error fetching subscribers:', subscribersError);
+      return res.status(500).json({ error: 'Failed to fetch subscribers' });
+    }
+
+    // Filter active subscribers
+    const subscribers = subscriberListRecords
+      .map(record => record.email_subscribers)
+      .filter(sub => sub && sub.status === 'subscribed');
+
+    if (subscribers.length === 0) {
+      return res.status(400).json({ 
+        error: 'No active subscribers found in this mailing list',
+        message: 'Add subscribers to the mailing list before sending the campaign'
+      });
+    }
+
+    // Update campaign status to sending
+    await supabaseClient
+      .from('email_campaigns')
+      .update({ 
+        status: 'sending',
+        recipient_count: subscribers.length
+      })
+      .eq('id', campaignId);
+
+    // Log campaign send start
+    console.log(`Starting campaign send:`, {
+      campaignId,
+      campaignName: campaign.name,
+      organizationId: campaign.organization_id,
+      recipientCount: subscribers.length,
+      timestamp: new Date().toISOString()
+    });
+
+    // Send emails in batches to avoid rate limiting
+    const batchSize = 50; // Resend free tier allows ~100 emails/day, Pro allows more
+    let sentCount = 0;
+    let deliveredCount = 0;
+    let failedCount = 0;
+    const errors = [];
+
+    for (let i = 0; i < subscribers.length; i += batchSize) {
+      const batch = subscribers.slice(i, i + batchSize);
+      
+      // Send emails in parallel for this batch
+      const batchResults = await Promise.allSettled(
+        batch.map(async (subscriber) => {
+          try {
+            // Replace template variables in content
+            let emailContent = campaign.content;
+            const replacements = {
+              '{{first_name}}': subscriber.first_name || '',
+              '{{last_name}}': subscriber.last_name || '',
+              '{{email}}': subscriber.email || ''
+            };
+
+            Object.entries(replacements).forEach(([key, value]) => {
+              emailContent = emailContent.replace(new RegExp(key, 'g'), value);
+            });
+
+            // Send via Resend
+            const result = await resend.emails.send({
+              from: 'onboarding@resend.dev', // TODO: Use organization's verified domain
+              to: subscriber.email,
+              subject: campaign.subject,
+              html: emailContent
+            });
+
+            if (result.error) {
+              throw new Error(result.error.message);
+            }
+
+            return { success: true, emailId: result.data?.id, subscriber };
+          } catch (error) {
+            return { 
+              success: false, 
+              error: error.message, 
+              subscriber 
+            };
+          }
+        })
+      );
+
+      // Count results
+      batchResults.forEach((result) => {
+        if (result.status === 'fulfilled' && result.value.success) {
+          sentCount++;
+          deliveredCount++;
+        } else {
+          failedCount++;
+          const errorInfo = result.status === 'fulfilled' ? result.value : { error: result.reason };
+          errors.push({
+            email: errorInfo.subscriber?.email,
+            error: errorInfo.error
+          });
+        }
+      });
+
+      // Small delay between batches to respect rate limits
+      if (i + batchSize < subscribers.length) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+
+    // Update campaign with final stats
+    const { error: updateError } = await supabaseClient
+      .from('email_campaigns')
+      .update({
+        status: 'sent',
+        sent_at: new Date().toISOString(),
+        delivered_count: deliveredCount,
+        bounced_count: failedCount
+      })
+      .eq('id', campaignId);
+
+    if (updateError) {
+      console.error('Error updating campaign status:', updateError);
+    }
+
+    // Log completion
+    console.log(`Campaign send completed:`, {
+      campaignId,
+      sentCount,
+      deliveredCount,
+      failedCount,
+      timestamp: new Date().toISOString()
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Campaign sent successfully',
+      stats: {
+        total: subscribers.length,
+        sent: sentCount,
+        delivered: deliveredCount,
+        failed: failedCount
+      },
+      ...(errors.length > 0 && { errors: errors.slice(0, 10) }) // Only return first 10 errors
+    });
+
+  } catch (error) {
+    console.error('Campaign send error:', error);
+    
+    // Try to update campaign status to failed
+    if (req.body.campaignId && req.supabase) {
+      await req.supabase
+        .from('email_campaigns')
+        .update({ status: 'failed' })
+        .eq('id', req.body.campaignId)
+        .catch(e => console.error('Failed to update campaign status:', e));
+    }
+
+    res.status(500).json({ 
+      error: 'Failed to send campaign', 
+      details: error.message 
+    });
+  }
+});
+
 // Serve static files from dist directory with proper cache headers
 const distPath = path.join(__dirname, 'dist');
 if (fs.existsSync(distPath)) {

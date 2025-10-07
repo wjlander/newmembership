@@ -5305,12 +5305,14 @@ interface CampaignsViewProps {
 
 interface Campaign {
   id: string;
-  title: string;
+  name: string;
   subject: string;
   status: string;
+  mailing_list_id: string | null;
   scheduled_at: string | null;
   sent_at: string | null;
   recipient_count: number | null;
+  delivered_count: number | null;
   created_at: string;
 }
 
@@ -5318,6 +5320,8 @@ function CampaignsView({ organizationId }: CampaignsViewProps) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [sendingCampaign, setSendingCampaign] = useState<string | null>(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchCampaigns();
@@ -5333,13 +5337,51 @@ function CampaignsView({ organizationId }: CampaignsViewProps) {
 
       if (error) throw error;
       setCampaigns(data || []);
-      toast.success('Campaigns loaded');
     } catch (error) {
       console.error('Error fetching campaigns:', error);
       toast.error('Failed to load campaigns');
       setCampaigns([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSendCampaign = async (campaignId: string) => {
+    if (!confirm('Are you sure you want to send this campaign? This will send emails to all subscribers in the mailing list.')) {
+      return;
+    }
+
+    setSendingCampaign(campaignId);
+    
+    try {
+      // Get user token for authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Not authenticated');
+      }
+
+      const response = await fetch('/api/campaigns/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ campaignId })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || result.message || 'Failed to send campaign');
+      }
+
+      toast.success(`Campaign sent successfully! Sent to ${result.stats.delivered} subscribers.`);
+      fetchCampaigns();
+    } catch (error: any) {
+      console.error('Error sending campaign:', error);
+      toast.error(error.message || 'Failed to send campaign');
+    } finally {
+      setSendingCampaign(null);
     }
   };
 
@@ -5385,30 +5427,65 @@ function CampaignsView({ organizationId }: CampaignsViewProps) {
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div>
-                    <CardTitle>{campaign.title}</CardTitle>
+                    <CardTitle>{campaign.name}</CardTitle>
                     <CardDescription>Subject: {campaign.subject}</CardDescription>
                   </div>
-                  <Badge variant={
-                    campaign.status === 'sent' ? 'default' :
-                    campaign.status === 'draft' ? 'secondary' : 'secondary'
-                  }>
-                    {campaign.status}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={
+                      campaign.status === 'sent' ? 'default' :
+                      campaign.status === 'sending' ? 'default' :
+                      campaign.status === 'draft' ? 'secondary' : 'secondary'
+                    }>
+                      {campaign.status}
+                    </Badge>
+                    {campaign.status === 'draft' && campaign.mailing_list_id && (
+                      <Button
+                        size="sm"
+                        onClick={() => handleSendCampaign(campaign.id)}
+                        disabled={sendingCampaign === campaign.id}
+                        data-testid={`button-send-campaign-${campaign.id}`}
+                      >
+                        {sendingCampaign === campaign.id ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                            Sending...
+                          </>
+                        ) : (
+                          <>
+                            <Mail className="h-4 w-4 mr-2" />
+                            Send Now
+                          </>
+                        )}
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
-                  <div>
-                    <span className="font-medium">Created:</span> {formatDate(campaign.created_at)}
-                  </div>
-                  {campaign.sent_at && (
+                <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
                     <div>
-                      <span className="font-medium">Sent:</span> {formatDate(campaign.sent_at)}
+                      <span className="font-medium">Created:</span> {formatDate(campaign.created_at)}
                     </div>
-                  )}
-                  {campaign.recipient_count && (
-                    <div>
-                      <span className="font-medium">Recipients:</span> {campaign.recipient_count}
+                    {campaign.sent_at && (
+                      <div>
+                        <span className="font-medium">Sent:</span> {formatDate(campaign.sent_at)}
+                      </div>
+                    )}
+                    {campaign.recipient_count !== null && campaign.recipient_count > 0 && (
+                      <div>
+                        <span className="font-medium">Recipients:</span> {campaign.recipient_count}
+                      </div>
+                    )}
+                    {campaign.delivered_count !== null && campaign.delivered_count > 0 && (
+                      <div>
+                        <span className="font-medium">Delivered:</span> {campaign.delivered_count}
+                      </div>
+                    )}
+                  </div>
+                  {!campaign.mailing_list_id && campaign.status === 'draft' && (
+                    <div className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded p-2">
+                      <strong>Note:</strong> Assign a mailing list to this campaign before sending
                     </div>
                   )}
                 </div>
@@ -5443,10 +5520,32 @@ function CreateCampaignModal({ organizationId, onClose, onSuccess }: CreateCampa
   const [formData, setFormData] = useState({
     title: '',
     subject: '',
-    content: ''
+    content: '',
+    mailing_list_id: ''
   });
   const [loading, setLoading] = useState(false);
+  const [mailingLists, setMailingLists] = useState<MailingList[]>([]);
   const { user } = useAuth();
+
+  useEffect(() => {
+    fetchMailingLists();
+  }, [organizationId]);
+
+  const fetchMailingLists = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('mailing_lists')
+        .select('*')
+        .eq('organization_id', organizationId)
+        .eq('is_active', true)
+        .order('name');
+
+      if (error) throw error;
+      setMailingLists(data || []);
+    } catch (error) {
+      console.error('Error fetching mailing lists:', error);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -5461,9 +5560,10 @@ function CreateCampaignModal({ organizationId, onClose, onSuccess }: CreateCampa
         .from('email_campaigns')
         .insert({
           organization_id: organizationId,
-          title: formData.title,
+          name: formData.title,
           subject: formData.subject,
           content: formData.content,
+          mailing_list_id: formData.mailing_list_id || null,
           status: 'draft',
           created_by: user.profile.id
         });
@@ -5501,6 +5601,24 @@ function CreateCampaignModal({ organizationId, onClose, onSuccess }: CreateCampa
               <p className="text-xs text-gray-500 mt-1">Internal name for this campaign</p>
             </div>
             <div>
+              <label className="text-sm font-medium">Mailing List *</label>
+              <select
+                value={formData.mailing_list_id}
+                onChange={(e) => setFormData({ ...formData, mailing_list_id: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+                data-testid="select-mailing-list"
+              >
+                <option value="">Select a mailing list</option>
+                {mailingLists.map((list) => (
+                  <option key={list.id} value={list.id}>
+                    {list.name} ({list.subscriber_count} subscribers)
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-500 mt-1">The campaign will be sent to subscribers of this list</p>
+            </div>
+            <div>
               <label className="text-sm font-medium">Email Subject *</label>
               <Input
                 value={formData.subject}
@@ -5522,10 +5640,12 @@ function CreateCampaignModal({ organizationId, onClose, onSuccess }: CreateCampa
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 data-testid="input-campaign-content"
               />
-              <p className="text-xs text-gray-500 mt-1">HTML formatting is supported</p>
+              <p className="text-xs text-gray-500 mt-1">
+                HTML formatting is supported. Use template variables: {'{'}{'{'} first_name{'}'}{'}'}, {'{'}{'{'} last_name{'}'}{'}'}, {'{'}{'{'} email{'}'}{'}'}
+              </p>
             </div>
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
-              <strong>Note:</strong> This campaign will be saved as a draft. To send it, you'll need to set up the Resend integration for email delivery.
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+              <strong>Tip:</strong> This campaign will be saved as a draft. You can send it later from the campaigns list.
             </div>
             <div className="flex gap-2 pt-4">
               <Button type="button" variant="outline" onClick={onClose} className="flex-1">
