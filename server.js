@@ -792,7 +792,14 @@ app.post('/api/workflows/test', authenticateRequest, async (req, res) => {
 
 // Serve static files from dist directory with proper cache headers
 const distPath = path.join(__dirname, 'dist');
+console.log('Checking for dist directory at:', distPath);
+console.log('Dist directory exists:', fs.existsSync(distPath));
+
 if (fs.existsSync(distPath)) {
+  console.log('Serving static files from:', distPath);
+  const files = fs.readdirSync(distPath);
+  console.log('Files in dist directory:', files);
+
   app.use(express.static(distPath, {
     maxAge: 0,
     etag: true,
@@ -811,24 +818,52 @@ if (fs.existsSync(distPath)) {
       }
     }
   }));
-} else {
-  console.error('Dist directory not found:', distPath);
-}
 
-// Handle client-side routing - serve index.html for all other routes
-app.use((req, res) => {
-  const indexPath = path.join(__dirname, 'dist', 'index.html');
-  if (fs.existsSync(indexPath)) {
-    // Set aggressive no-cache headers for index.html
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-    res.setHeader('Surrogate-Control', 'no-store');
-    res.sendFile(indexPath);
-  } else {
-    res.status(500).send('Application not built. Please run npm run build.');
-  }
-});
+  // Handle client-side routing - serve index.html for all other routes
+  app.use((req, res) => {
+    const indexPath = path.join(distPath, 'index.html');
+    console.log('Serving index.html from:', indexPath);
+    console.log('Index.html exists:', fs.existsSync(indexPath));
+
+    if (fs.existsSync(indexPath)) {
+      // Set aggressive no-cache headers for index.html
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.setHeader('Surrogate-Control', 'no-store');
+      res.sendFile(indexPath);
+    } else {
+      res.status(500).send(`
+        <html>
+          <head><title>Build Error</title></head>
+          <body>
+            <h1>Build Error</h1>
+            <p>Index.html not found at: ${indexPath}</p>
+            <p>Dist path: ${distPath}</p>
+            <p>Files in dist: ${files.join(', ')}</p>
+          </body>
+        </html>
+      `);
+    }
+  });
+} else {
+  console.error('Dist directory not found at:', distPath);
+
+  // Serve error page for all routes
+  app.use((req, res) => {
+    res.status(500).send(`
+      <html>
+        <head><title>Application Not Built</title></head>
+        <body>
+          <h1>Application Not Built</h1>
+          <p>Dist directory not found at: ${distPath}</p>
+          <p>Current directory: ${__dirname}</p>
+          <p>Please run: npm run build</p>
+        </body>
+      </html>
+    `);
+  });
+}
 
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
