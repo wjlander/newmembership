@@ -32,7 +32,12 @@ import {
   Upload,
   Search,
   Filter,
-  ExternalLink
+  ExternalLink,
+  Eye,
+  EyeOff,
+  Video,
+  FileIcon,
+  Edit
 } from 'lucide-react'
 import { FormBuilder } from '@/components/admin/FormBuilder'
 import { MembershipTypesEditor } from '@/components/admin/MembershipTypesEditor'
@@ -83,7 +88,7 @@ export function MemberDashboard() {
   const [memberships, setMemberships] = useState<Membership[]>([])
   const [membershipTypes, setMembershipTypes] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeView, setActiveView] = useState<'dashboard' | 'profile' | 'events' | 'messages' | 'subscriptions' | 'committees' | 'badges' | 'documents' | 'admin-members' | 'admin-settings' | 'admin-mailing' | 'admin-forms' | 'admin-memberships' | 'admin-workflows' | 'admin-event-registrations' | 'admin-committees' | 'admin-analytics' | 'admin-badges' | 'admin-reminders' | 'admin-reports' | 'admin-email-templates' | 'admin-documents'>('dashboard')
+  const [activeView, setActiveView] = useState<'dashboard' | 'profile' | 'events' | 'messages' | 'subscriptions' | 'committees' | 'badges' | 'documents' | 'admin-members' | 'admin-settings' | 'admin-mailing' | 'admin-forms' | 'admin-memberships' | 'admin-workflows' | 'admin-event-registrations' | 'admin-committees' | 'admin-committee-positions' | 'admin-analytics' | 'admin-badges' | 'admin-reminders' | 'admin-reports' | 'admin-email-templates' | 'admin-documents'>('dashboard')
   const [showRenewalModal, setShowRenewalModal] = useState(false)
   const [exportingMemberships, setExportingMemberships] = useState(false)
 
@@ -6138,6 +6143,7 @@ interface AdminCommitteesViewProps {
 interface CommitteeMember {
   id: string;
   profile_id: string;
+  position_id: string | null;
   role: string;
   profiles: {
     id: string;
