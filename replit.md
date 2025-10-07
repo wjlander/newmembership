@@ -22,6 +22,8 @@ A comprehensive membership management system for multiple organizations with com
 - Enhanced Committees view to display member names with their positions instead of just member count
 - Fixed payment method dropdown styling with visible white background
 - Improved admin approval modal with scrollable content (max-h-90vh) for better UX with long member lists
+- **Added test email workflow feature**: Admins can now test email workflows before activation using a test button with custom email address and sample data
+- Fixed critical template variable replacement bug in both test workflow and campaign send endpoints (replaced regex with safe replaceAll method)
 
 ## User Preferences
 
