@@ -670,6 +670,7 @@ app.post('/api/campaigns/send', authenticateRequest, async (req, res) => {
       sentCount,
       deliveredCount,
       failedCount,
+      errors: errors.length > 0 ? errors : 'None',
       timestamp: new Date().toISOString()
     });
 
