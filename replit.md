@@ -4,6 +4,15 @@
 
 A comprehensive membership management system for multiple organizations with complete data isolation using URL parameter-based routing (`?org=slug`). It features a multi-tenant architecture, flexible routing (subdomain, URL parameters, or custom domains), a super admin portal, role-based access control, and an organization selector. The system supports custom signup forms with dynamic fields, membership types, integrated mailing list management with email campaigns via Resend, and **custom domain support** allowing organizations to use their own domains (e.g., `frps.org.uk`). The project is built with React, Vite, TypeScript, and Supabase (PostgreSQL), deployed via PM2 and Nginx with automatic SSL certificate management.
 
+## Recent Changes
+
+**2025-10-07**:
+- Added Events navigation button to member dashboard menu (feature-toggle controlled)
+- Added Events Management option to admin dropdown menu
+- Enhanced Committees view to display member names with their positions instead of just member count
+- Fixed payment method dropdown styling with visible white background
+- Improved admin approval modal with scrollable content (max-h-90vh) for better UX with long member lists
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
