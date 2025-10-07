@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/hooks/useAuth'
+import { usePermissions } from '@/hooks/usePermissions'
 import { useTenant } from '@/hooks/useTenant'
 import { supabase } from '@/lib/supabase/client'
 import DOMPurify from 'dompurify'
@@ -43,6 +44,8 @@ import { FormBuilder } from '@/components/admin/FormBuilder'
 import { MembershipTypesEditor } from '@/components/admin/MembershipTypesEditor'
 import { EmailWorkflowsManager } from '@/components/admin/EmailWorkflowsManager'
 import { DocumentsManager } from '@/components/admin/DocumentsManager'
+import { AdminCommitteePositionsView } from '@/components/admin/AdminCommitteePositionsView'
+import { AdminCommitteesView } from '@/components/admin/AdminCommitteesView'
 import { DynamicFormRenderer } from '@/components/forms/DynamicFormRenderer'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
@@ -84,6 +87,7 @@ interface Membership {
 
 export function MemberDashboard() {
   const { user, isAdmin } = useAuth()
+  const { hasPermission } = usePermissions()
   const { organization } = useTenant()
   const [memberships, setMemberships] = useState<Membership[]>([])
   const [membershipTypes, setMembershipTypes] = useState<any[]>([])
@@ -95,11 +99,11 @@ export function MemberDashboard() {
   useEffect(() => {
     // Check URL hash for navigation
     const hash = window.location.hash.replace('#', '')
-    if (hash === 'admin' && isAdmin) {
+    if (hash === 'admin' && (isAdmin || hasPermission('approve_members') || hasPermission('manage_members'))) {
       setActiveView('admin-members')
       window.location.hash = '' // Clear hash after navigation
     }
-  }, [isAdmin])
+  }, [isAdmin, hasPermission])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -360,7 +364,7 @@ export function MemberDashboard() {
             >
               Documents
             </button>
-            {isAdmin && (
+            {(isAdmin || hasPermission('approve_members') || hasPermission('manage_members') || hasPermission('manage_settings') || hasPermission('manage_committees') || hasPermission('view_reports')) && (
               <div className="ml-auto">
                 <Select
                   value={activeView.startsWith('admin-') ? activeView : ''}
@@ -373,21 +377,51 @@ export function MemberDashboard() {
                     <SelectValue placeholder="Admin Menu" />
                   </SelectTrigger>
                   <SelectContent className="max-h-[400px] overflow-y-auto">
-                    <SelectItem value="admin-members">Members</SelectItem>
-                    <SelectItem value="admin-settings">Organization Settings</SelectItem>
-                    <SelectItem value="admin-mailing">Mailing List</SelectItem>
-                    <SelectItem value="admin-memberships">Membership Types</SelectItem>
-                    <SelectItem value="admin-forms">Signup Forms</SelectItem>
-                    <SelectItem value="admin-workflows">Email Workflows</SelectItem>
-                    <SelectItem value="admin-email-templates">Email Templates</SelectItem>
-                    <SelectItem value="admin-event-registrations">Event Registrations</SelectItem>
-                    <SelectItem value="admin-committees">Committees Management</SelectItem>
-                    <SelectItem value="admin-committee-positions">Committee Positions</SelectItem>
-                    <SelectItem value="admin-analytics">Analytics</SelectItem>
-                    <SelectItem value="admin-badges">Badges Management</SelectItem>
-                    <SelectItem value="admin-reminders">Automated Reminders</SelectItem>
-                    <SelectItem value="admin-reports">Custom Reports</SelectItem>
-                    <SelectItem value="admin-documents">Document Library</SelectItem>
+                    {(isAdmin || hasPermission('approve_members') || hasPermission('manage_members')) && (
+                      <SelectItem value="admin-members">Members</SelectItem>
+                    )}
+                    {(isAdmin || hasPermission('manage_settings')) && (
+                      <SelectItem value="admin-settings">Organization Settings</SelectItem>
+                    )}
+                    {(isAdmin || hasPermission('manage_mailing_lists')) && (
+                      <SelectItem value="admin-mailing">Mailing List</SelectItem>
+                    )}
+                    {(isAdmin || hasPermission('manage_memberships')) && (
+                      <SelectItem value="admin-memberships">Membership Types</SelectItem>
+                    )}
+                    {(isAdmin || hasPermission('manage_settings')) && (
+                      <SelectItem value="admin-forms">Signup Forms</SelectItem>
+                    )}
+                    {(isAdmin || hasPermission('manage_emails')) && (
+                      <SelectItem value="admin-workflows">Email Workflows</SelectItem>
+                    )}
+                    {(isAdmin || hasPermission('manage_emails')) && (
+                      <SelectItem value="admin-email-templates">Email Templates</SelectItem>
+                    )}
+                    {(isAdmin || hasPermission('manage_events')) && (
+                      <SelectItem value="admin-event-registrations">Event Registrations</SelectItem>
+                    )}
+                    {(isAdmin || hasPermission('manage_committees')) && (
+                      <SelectItem value="admin-committees">Committees Management</SelectItem>
+                    )}
+                    {(isAdmin || hasPermission('manage_committees')) && (
+                      <SelectItem value="admin-committee-positions">Committee Positions</SelectItem>
+                    )}
+                    {(isAdmin || hasPermission('view_reports')) && (
+                      <SelectItem value="admin-analytics">Analytics</SelectItem>
+                    )}
+                    {(isAdmin || hasPermission('manage_settings')) && (
+                      <SelectItem value="admin-badges">Badges Management</SelectItem>
+                    )}
+                    {(isAdmin || hasPermission('manage_emails')) && (
+                      <SelectItem value="admin-reminders">Automated Reminders</SelectItem>
+                    )}
+                    {(isAdmin || hasPermission('view_reports') || hasPermission('export_reports')) && (
+                      <SelectItem value="admin-reports">Custom Reports</SelectItem>
+                    )}
+                    {(isAdmin || hasPermission('manage_settings')) && (
+                      <SelectItem value="admin-documents">Document Library</SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -670,37 +704,37 @@ export function MemberDashboard() {
       )}
 
       {/* Admin - Members View */}
-      {activeView === 'admin-members' && isAdmin && (
+      {activeView === 'admin-members' && (isAdmin || hasPermission('approve_members') || hasPermission('manage_members')) && (
         <MembersAdminView organizationId={organization?.id || ''} />
       )}
 
       {/* Admin - Settings View */}
-      {activeView === 'admin-settings' && isAdmin && organization && (
+      {activeView === 'admin-settings' && (isAdmin || hasPermission('manage_settings')) && organization && (
         <SettingsAdminView organization={organization} />
       )}
 
       {/* Admin - Mailing List View */}
-      {activeView === 'admin-mailing' && isAdmin && organization && (
+      {activeView === 'admin-mailing' && (isAdmin || hasPermission('manage_mailing_lists')) && organization && (
         <MailingAdminView organizationId={organization.id} />
       )}
 
       {/* Admin - Membership Types View */}
-      {activeView === 'admin-memberships' && isAdmin && organization && (
+      {activeView === 'admin-memberships' && (isAdmin || hasPermission('manage_memberships')) && organization && (
         <MembershipTypesEditor organizationId={organization.id} />
       )}
 
       {/* Admin - Signup Forms View */}
-      {activeView === 'admin-forms' && isAdmin && organization && (
+      {activeView === 'admin-forms' && (isAdmin || hasPermission('manage_settings')) && organization && (
         <FormBuilder organizationId={organization.id} />
       )}
 
       {/* Admin - Email Workflows View */}
-      {activeView === 'admin-workflows' && isAdmin && organization && (
+      {activeView === 'admin-workflows' && (isAdmin || hasPermission('manage_emails')) && organization && (
         <EmailWorkflowsManager organizationId={organization.id} />
       )}
 
       {/* Admin - Event Registrations View */}
-      {activeView === 'admin-event-registrations' && isAdmin && organization && (
+      {activeView === 'admin-event-registrations' && (isAdmin || hasPermission('manage_events')) && organization && (
         <AdminEventRegistrationsView organizationId={organization.id} />
       )}
 
@@ -710,16 +744,16 @@ export function MemberDashboard() {
       )}
 
       {/* Admin - Committees Management View */}
-      {activeView === 'admin-committees' && isAdmin && organization && (
+      {activeView === 'admin-committees' && (isAdmin || hasPermission('manage_committees')) && organization && (
         <AdminCommitteesView organizationId={organization.id} />
       )}
 
-      {activeView === 'admin-committee-positions' && isAdmin && organization && (
+      {activeView === 'admin-committee-positions' && (isAdmin || hasPermission('manage_committees')) && organization && (
         <AdminCommitteePositionsView organizationId={organization.id} />
       )}
 
       {/* Admin - Analytics View */}
-      {activeView === 'admin-analytics' && isAdmin && organization && (
+      {activeView === 'admin-analytics' && (isAdmin || hasPermission('view_reports')) && organization && (
         <AnalyticsView organizationId={organization.id} primaryColor={organization.primary_color} />
       )}
 
@@ -729,27 +763,27 @@ export function MemberDashboard() {
       )}
 
       {/* Admin - Badges Management View */}
-      {activeView === 'admin-badges' && isAdmin && organization && (
+      {activeView === 'admin-badges' && (isAdmin || hasPermission('manage_settings')) && organization && (
         <AdminBadgesView organizationId={organization.id} />
       )}
 
       {/* Admin - Automated Reminders View */}
-      {activeView === 'admin-reminders' && isAdmin && organization && (
+      {activeView === 'admin-reminders' && (isAdmin || hasPermission('manage_emails')) && organization && (
         <AdminRemindersView organizationId={organization.id} />
       )}
 
       {/* Admin - Custom Reports View */}
-      {activeView === 'admin-reports' && isAdmin && organization && user?.profile?.id && (
+      {activeView === 'admin-reports' && (isAdmin || hasPermission('view_reports') || hasPermission('export_reports')) && organization && user?.profile?.id && (
         <CustomReportsView organizationId={organization.id} profileId={user.profile.id} />
       )}
 
       {/* Admin - Email Templates View */}
-      {activeView === 'admin-email-templates' && isAdmin && organization && user?.profile?.id && (
+      {activeView === 'admin-email-templates' && (isAdmin || hasPermission('manage_emails')) && organization && user?.profile?.id && (
         <EmailTemplatesView organizationId={organization.id} profileId={user.profile.id} />
       )}
 
       {/* Admin - Document Library View */}
-      {activeView === 'admin-documents' && isAdmin && organization && (
+      {activeView === 'admin-documents' && (isAdmin || hasPermission('manage_settings')) && organization && (
         <DocumentsAdminView organizationId={organization.id} />
       )}
 
@@ -6250,1282 +6284,6 @@ function MemberCommitteesView({ organizationId, profileId }: MemberCommitteesVie
 }
 
 // Admin Committees View Component
-interface AdminCommitteesViewProps {
-  organizationId: string;
-}
-
-interface CommitteeMember {
-  id: string;
-  profile_id: string;
-  position_id: string | null;
-  role: string;
-  profiles: {
-    id: string;
-    first_name: string;
-    last_name: string;
-    email: string;
-  };
-}
-
-function AdminCommitteesView({ organizationId }: AdminCommitteesViewProps) {
-  const [committees, setCommittees] = useState<Committee[]>([]);
-  const [mailingLists, setMailingLists] = useState<MailingList[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showMembersModal, setShowMembersModal] = useState(false);
-  const [selectedCommittee, setSelectedCommittee] = useState<Committee | null>(null);
-  const [exporting, setExporting] = useState(false);
-
-  const fetchCommittees = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('committees')
-        .select('*')
-        .eq('organization_id', organizationId)
-        .order('name');
-
-      if (error) throw error;
-      setCommittees(data || []);
-    } catch (error) {
-      console.error('Error fetching committees:', error);
-      toast.error('Failed to load committees');
-    }
-  };
-
-  const fetchMailingLists = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('mailing_lists')
-        .select('*')
-        .eq('organization_id', organizationId)
-        .order('name');
-
-      if (error) throw error;
-      setMailingLists(data || []);
-    } catch (error) {
-      console.error('Error fetching mailing lists:', error);
-    }
-  };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      await Promise.all([fetchCommittees(), fetchMailingLists()]);
-      setLoading(false);
-    };
-
-    fetchData();
-  }, [organizationId]);
-
-  const handleDelete = async (committeeId: string, committeeName: string) => {
-    if (!confirm(`Are you sure you want to delete "${committeeName}"? This will also remove all committee members.`)) {
-      return;
-    }
-
-    try {
-      const { error } = await supabase
-        .from('committees')
-        .delete()
-        .eq('id', committeeId);
-
-      if (error) throw error;
-
-      toast.success('Committee deleted successfully');
-      fetchCommittees();
-    } catch (error) {
-      console.error('Error deleting committee:', error);
-      toast.error('Failed to delete committee');
-    }
-  };
-
-  const handleExportCommittees = () => {
-    try {
-      setExporting(true);
-      
-      if (committees.length === 0) {
-        toast.error('No committees to export');
-        return;
-      }
-
-      exportToCSV({
-        data: committees,
-        columns: [
-          { key: 'name', header: 'Name' },
-          { key: 'member_count', header: 'Member Count' },
-          { key: 'is_active', header: 'Is Active', format: (val) => val ? 'Yes' : 'No' }
-        ],
-        filename: 'committees'
-      });
-      
-      toast.success('Committees exported successfully');
-    } catch (error) {
-      console.error('Error exporting committees:', error);
-      toast.error('Failed to export committees');
-    } finally {
-      setExporting(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="space-y-6" data-testid="loading-admin-committees">
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-200 rounded w-1/3"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} className="h-40 bg-gray-200 rounded"></div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Committees Management</h2>
-          <p className="text-gray-600 mt-1">Manage organization committees and their members</p>
-        </div>
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            onClick={handleExportCommittees} 
-            disabled={exporting || committees.length === 0}
-            data-testid="button-export-csv"
-          >
-            {exporting ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Download className="h-4 w-4 mr-2" />
-            )}
-            Export CSV
-          </Button>
-          <Button onClick={() => setShowCreateModal(true)} data-testid="button-create-committee">
-            <Plus className="h-4 w-4 mr-2" />
-            Create Committee
-          </Button>
-        </div>
-      </div>
-
-      {committees.length === 0 ? (
-        <Card>
-          <CardContent className="text-center py-12">
-            <User className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-            <h3 className="text-lg font-medium mb-2">No Committees Yet</h3>
-            <p className="text-gray-600 mb-4">Create your first committee to get started.</p>
-            <Button onClick={() => setShowCreateModal(true)} data-testid="button-create-first-committee">
-              <Plus className="h-4 w-4 mr-2" />
-              Create Committee
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {committees.map(committee => {
-            const linkedMailingList = mailingLists.find(ml => ml.id === committee.mailing_list_id);
-            return (
-              <Card key={committee.id} data-testid={`admin-committee-${committee.id}`}>
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="flex items-center gap-2">
-                        {committee.name}
-                        {!committee.is_active && (
-                          <Badge variant="secondary">Inactive</Badge>
-                        )}
-                      </CardTitle>
-                      <CardDescription>{committee.description || 'No description'}</CardDescription>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="flex items-center gap-2 text-gray-600">
-                        <User className="h-4 w-4" />
-                        <span data-testid={`admin-member-count-${committee.id}`}>{committee.member_count} member{committee.member_count !== 1 ? 's' : ''}</span>
-                      </span>
-                      {linkedMailingList && (
-                        <span className="flex items-center gap-2 text-gray-600">
-                          <Mail className="h-4 w-4" />
-                          <span data-testid={`mailing-list-${committee.id}`}>{linkedMailingList.name}</span>
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          setSelectedCommittee(committee);
-                          setShowMembersModal(true);
-                        }}
-                        data-testid={`button-view-members-${committee.id}`}
-                      >
-                        <User className="h-4 w-4 mr-1" />
-                        View Members
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          setSelectedCommittee(committee);
-                          setShowEditModal(true);
-                        }}
-                        data-testid={`button-edit-committee-${committee.id}`}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleDelete(committee.id, committee.name)}
-                        data-testid={`button-delete-committee-${committee.id}`}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      )}
-
-      {showCreateModal && (
-        <CreateCommitteeModal
-          organizationId={organizationId}
-          mailingLists={mailingLists}
-          onClose={() => setShowCreateModal(false)}
-          onSuccess={() => {
-            setShowCreateModal(false);
-            fetchCommittees();
-          }}
-        />
-      )}
-
-      {showEditModal && selectedCommittee && (
-        <EditCommitteeModal
-          committee={selectedCommittee}
-          mailingLists={mailingLists}
-          onClose={() => {
-            setShowEditModal(false);
-            setSelectedCommittee(null);
-          }}
-          onSuccess={() => {
-            setShowEditModal(false);
-            setSelectedCommittee(null);
-            fetchCommittees();
-          }}
-        />
-      )}
-
-      {showMembersModal && selectedCommittee && (
-        <CommitteeMembersModal
-          committee={selectedCommittee}
-          organizationId={organizationId}
-          onClose={() => {
-            setShowMembersModal(false);
-            setSelectedCommittee(null);
-          }}
-          onSuccess={() => {
-            fetchCommittees();
-          }}
-        />
-      )}
-    </div>
-  );
-}
-
-// Create Committee Modal
-interface CreateCommitteeModalProps {
-  organizationId: string;
-  mailingLists: MailingList[];
-  onClose: () => void;
-  onSuccess: () => void;
-}
-
-function CreateCommitteeModal({ organizationId, mailingLists, onClose, onSuccess }: CreateCommitteeModalProps) {
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [slug, setSlug] = useState('');
-  const [mailingListId, setMailingListId] = useState<string>('');
-  const [createMailingList, setCreateMailingList] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  const generateSlug = (text: string) => {
-    return text
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-  };
-
-  const handleNameChange = (value: string) => {
-    setName(value);
-    if (!slug || slug === generateSlug(name)) {
-      setSlug(generateSlug(value));
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      let finalMailingListId = mailingListId || null;
-
-      if (createMailingList) {
-        const mailingListSlug = generateSlug(`${name}-members`);
-        const { data: newList, error: listError } = await supabase
-          .from('mailing_lists')
-          .insert({
-            organization_id: organizationId,
-            name: `${name} Members`,
-            slug: mailingListSlug,
-            description: `Mailing list for ${name} committee members`
-          })
-          .select()
-          .single();
-
-        if (listError) throw listError;
-        finalMailingListId = newList.id;
-      }
-
-      const { error } = await supabase
-        .from('committees')
-        .insert({
-          organization_id: organizationId,
-          name,
-          description: description || null,
-          slug,
-          mailing_list_id: finalMailingListId,
-          is_active: true,
-          member_count: 0
-        });
-
-      if (error) throw error;
-
-      toast.success('Committee created successfully');
-      onSuccess();
-    } catch (error) {
-      console.error('Error creating committee:', error);
-      toast.error('Failed to create committee');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50" data-testid="create-committee-modal">
-      <div className="bg-white rounded-lg p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Create Committee</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700" data-testid="button-close-modal">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">Committee Name *</label>
-            <Input
-              type="text"
-              value={name}
-              onChange={(e) => handleNameChange(e.target.value)}
-              placeholder="e.g., Social Committee"
-              required
-              data-testid="input-committee-name"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Description</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Brief description of the committee"
-              className="w-full px-3 py-2 border rounded-md"
-              rows={3}
-              data-testid="input-committee-description"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Slug *</label>
-            <Input
-              type="text"
-              value={slug}
-              onChange={(e) => setSlug(e.target.value)}
-              placeholder="social-committee"
-              required
-              data-testid="input-committee-slug"
-            />
-            <p className="text-xs text-gray-500 mt-1">Used in URLs and identifiers</p>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Mailing List (Optional)</label>
-            <select
-              value={mailingListId}
-              onChange={(e) => {
-                setMailingListId(e.target.value);
-                if (e.target.value) setCreateMailingList(false);
-              }}
-              className="w-full px-3 py-2 border rounded-md"
-              disabled={createMailingList}
-              data-testid="select-mailing-list"
-            >
-              <option value="">No mailing list</option>
-              {mailingLists.map(list => (
-                <option key={list.id} value={list.id}>{list.name}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="create-list"
-              checked={createMailingList}
-              onChange={(e) => {
-                setCreateMailingList(e.target.checked);
-                if (e.target.checked) setMailingListId('');
-              }}
-              className="rounded"
-              data-testid="checkbox-create-mailing-list"
-            />
-            <label htmlFor="create-list" className="text-sm">Create linked mailing list</label>
-          </div>
-
-          <div className="flex justify-end gap-2 mt-6">
-            <Button type="button" variant="outline" onClick={onClose} data-testid="button-cancel">
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading} data-testid="button-submit-committee">
-              {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-              Create Committee
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-// Edit Committee Modal
-interface EditCommitteeModalProps {
-  committee: Committee;
-  mailingLists: MailingList[];
-  onClose: () => void;
-  onSuccess: () => void;
-}
-
-function EditCommitteeModal({ committee, mailingLists, onClose, onSuccess }: EditCommitteeModalProps) {
-  const [name, setName] = useState(committee.name);
-  const [description, setDescription] = useState(committee.description || '');
-  const [slug, setSlug] = useState(committee.slug);
-  const [mailingListId, setMailingListId] = useState<string>(committee.mailing_list_id || '');
-  const [isActive, setIsActive] = useState(committee.is_active);
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const { error } = await supabase
-        .from('committees')
-        .update({
-          name,
-          description: description || null,
-          slug,
-          mailing_list_id: mailingListId || null,
-          is_active: isActive
-        })
-        .eq('id', committee.id);
-
-      if (error) throw error;
-
-      toast.success('Committee updated successfully');
-      onSuccess();
-    } catch (error) {
-      console.error('Error updating committee:', error);
-      toast.error('Failed to update committee');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50" data-testid="edit-committee-modal">
-      <div className="bg-white rounded-lg p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Edit Committee</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700" data-testid="button-close-edit-modal">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">Committee Name *</label>
-            <Input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              data-testid="input-edit-committee-name"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Description</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3 py-2 border rounded-md"
-              rows={3}
-              data-testid="input-edit-committee-description"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Slug *</label>
-            <Input
-              type="text"
-              value={slug}
-              onChange={(e) => setSlug(e.target.value)}
-              required
-              data-testid="input-edit-committee-slug"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Mailing List (Optional)</label>
-            <select
-              value={mailingListId}
-              onChange={(e) => setMailingListId(e.target.value)}
-              className="w-full px-3 py-2 border rounded-md"
-              data-testid="select-edit-mailing-list"
-            >
-              <option value="">No mailing list</option>
-              {mailingLists.map(list => (
-                <option key={list.id} value={list.id}>{list.name}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="is-active"
-              checked={isActive}
-              onChange={(e) => setIsActive(e.target.checked)}
-              className="rounded"
-              data-testid="checkbox-is-active"
-            />
-            <label htmlFor="is-active" className="text-sm">Committee is active</label>
-          </div>
-
-          <div className="flex justify-end gap-2 mt-6">
-            <Button type="button" variant="outline" onClick={onClose} data-testid="button-cancel-edit">
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading} data-testid="button-submit-edit-committee">
-              {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-              Save Changes
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-// Committee Members Modal
-interface CommitteeMembersModalProps {
-  committee: Committee;
-  organizationId: string;
-  onClose: () => void;
-  onSuccess: () => void;
-}
-
-function CommitteeMembersModal({ committee, organizationId, onClose, onSuccess }: CommitteeMembersModalProps) {
-  const [members, setMembers] = useState<CommitteeMember[]>([]);
-  const [profiles, setProfiles] = useState<any[]>([]);
-  const [positions, setPositions] = useState<CommitteePosition[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showAddMember, setShowAddMember] = useState(false);
-  const [selectedProfileId, setSelectedProfileId] = useState('');
-  const [selectedPositionId, setSelectedPositionId] = useState('');
-  const [adding, setAdding] = useState(false);
-
-  const fetchMembers = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('committee_members')
-        .select('id, profile_id, position_id, profiles(id, first_name, last_name, email)')
-        .eq('committee_id', committee.id);
-
-      if (error) throw error;
-      setMembers(data as any || []);
-    } catch (error) {
-      console.error('Error fetching members:', error);
-      toast.error('Failed to load committee members');
-    }
-  };
-
-  const fetchProfiles = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, first_name, last_name, email')
-        .eq('organization_id', organizationId)
-        .eq('is_active', true)
-        .order('first_name');
-
-      if (error) throw error;
-      setProfiles(data || []);
-    } catch (error) {
-      console.error('Error fetching profiles:', error);
-    }
-  };
-
-  const fetchPositions = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('committee_positions')
-        .select('*')
-        .eq('organization_id', organizationId)
-        .eq('is_active', true)
-        .order('display_order');
-
-      if (error) throw error;
-      setPositions(data || []);
-    } catch (error) {
-      console.error('Error fetching positions:', error);
-    }
-  };
-
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      await Promise.all([fetchMembers(), fetchProfiles(), fetchPositions()]);
-      setLoading(false);
-    };
-    loadData();
-  }, [committee.id]);
-
-  const handleAddMember = async () => {
-    if (!selectedProfileId) {
-      toast.error('Please select a member');
-      return;
-    }
-
-    setAdding(true);
-    try {
-      const { error } = await supabase
-        .from('committee_members')
-        .insert({
-          committee_id: committee.id,
-          profile_id: selectedProfileId,
-          position_id: selectedPositionId || null
-        });
-
-      if (error) throw error;
-
-      await supabase
-        .from('committees')
-        .update({ member_count: members.length + 1 })
-        .eq('id', committee.id);
-
-      toast.success('Member added successfully');
-      setShowAddMember(false);
-      setSelectedProfileId('');
-      setSelectedPositionId('');
-      await fetchMembers();
-      onSuccess();
-    } catch (error) {
-      console.error('Error adding member:', error);
-      toast.error('Failed to add member');
-    } finally {
-      setAdding(false);
-    }
-  };
-
-  const handleChangePosition = async (memberId: string, newPositionId: string) => {
-    try {
-      const { error } = await supabase
-        .from('committee_members')
-        .update({ position_id: newPositionId || null })
-        .eq('id', memberId);
-
-      if (error) throw error;
-
-      toast.success('Position updated successfully');
-      await fetchMembers();
-    } catch (error) {
-      console.error('Error updating position:', error);
-      toast.error('Failed to update position');
-    }
-  };
-
-  const handleRemoveMember = async (memberId: string, memberName: string) => {
-    if (!confirm(`Remove ${memberName} from this committee?`)) {
-      return;
-    }
-
-    try {
-      const { error } = await supabase
-        .from('committee_members')
-        .delete()
-        .eq('id', memberId);
-
-      if (error) throw error;
-
-      await supabase
-        .from('committees')
-        .update({ member_count: Math.max(0, members.length - 1) })
-        .eq('id', committee.id);
-
-      toast.success('Member removed successfully');
-      await fetchMembers();
-      onSuccess();
-    } catch (error) {
-      console.error('Error removing member:', error);
-      toast.error('Failed to remove member');
-    }
-  };
-
-  const availableProfiles = profiles.filter(
-    p => !members.some(m => m.profile_id === p.id)
-  );
-
-  return (
-    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50" data-testid="committee-members-modal">
-      <div className="bg-white rounded-lg p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-4">
-          <div>
-            <h2 className="text-xl font-bold">{committee.name} - Members</h2>
-            <p className="text-sm text-gray-600">{members.length} member{members.length !== 1 ? 's' : ''}</p>
-          </div>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700" data-testid="button-close-members-modal">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {loading ? (
-          <div className="text-center py-12">
-            <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
-            <p className="text-gray-600">Loading members...</p>
-          </div>
-        ) : (
-          <>
-            <div className="mb-4">
-              {showAddMember ? (
-                <div className="border rounded-lg p-4 space-y-4 bg-gray-50">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Select Member</label>
-                    <select
-                      value={selectedProfileId}
-                      onChange={(e) => setSelectedProfileId(e.target.value)}
-                      className="w-full px-3 py-2 border rounded-md"
-                      data-testid="select-add-member"
-                    >
-                      <option value="">Choose a member...</option>
-                      {availableProfiles.map(profile => (
-                        <option key={profile.id} value={profile.id}>
-                          {profile.first_name} {profile.last_name} ({profile.email})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Position (Optional)</label>
-                    <select
-                      value={selectedPositionId}
-                      onChange={(e) => setSelectedPositionId(e.target.value)}
-                      className="w-full px-3 py-2 border rounded-md"
-                      data-testid="select-member-position"
-                    >
-                      <option value="">No specific position</option>
-                      {positions.map(position => (
-                        <option key={position.id} value={position.id}>{position.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button onClick={handleAddMember} disabled={adding} data-testid="button-confirm-add-member">
-                      {adding ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                      Add Member
-                    </Button>
-                    <Button variant="outline" onClick={() => setShowAddMember(false)} data-testid="button-cancel-add-member">
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <Button onClick={() => setShowAddMember(true)} data-testid="button-add-member">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Member
-                </Button>
-              )}
-            </div>
-
-            {members.length === 0 ? (
-              <div className="text-center py-12">
-                <User className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                <h3 className="text-lg font-medium mb-2">No Members Yet</h3>
-                <p className="text-gray-600">Add members to this committee using the button above.</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {members.map(member => (
-                  <div key={member.id} className="flex items-center justify-between p-4 border rounded-lg" data-testid={`committee-member-${member.id}`}>
-                    <div>
-                      <h4 className="font-medium">
-                        {member.profiles.first_name} {member.profiles.last_name}
-                      </h4>
-                      <p className="text-sm text-gray-600">{member.profiles.email}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <select
-                        value={member.position_id || ''}
-                        onChange={(e) => handleChangePosition(member.id, e.target.value)}
-                        className="px-3 py-1 border rounded-md text-sm"
-                        data-testid={`select-position-${member.id}`}
-                      >
-                        <option value="">No specific position</option>
-                        {positions.map(position => (
-                          <option key={position.id} value={position.id}>{position.name}</option>
-                        ))}
-                      </select>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleRemoveMember(member.id, `${member.profiles.first_name} ${member.profiles.last_name}`)}
-                        data-testid={`button-remove-member-${member.id}`}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// Admin Committee Positions View Component
-interface AdminCommitteePositionsViewProps {
-  organizationId: string;
-}
-
-interface CommitteePosition {
-  id: string;
-  organization_id: string;
-  name: string;
-  description: string | null;
-  display_order: number;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-function AdminCommitteePositionsView({ organizationId }: AdminCommitteePositionsViewProps) {
-  const [positions, setPositions] = useState<CommitteePosition[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [selectedPosition, setSelectedPosition] = useState<CommitteePosition | null>(null);
-
-  const fetchPositions = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('committee_positions')
-        .select('*')
-        .eq('organization_id', organizationId)
-        .order('display_order');
-
-      if (error) throw error;
-      setPositions(data || []);
-    } catch (error) {
-      console.error('Error fetching positions:', error);
-      toast.error('Failed to load positions');
-    }
-  };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      await fetchPositions();
-      setLoading(false);
-    };
-
-    fetchData();
-  }, [organizationId]);
-
-  const handleDelete = async (positionId: string, positionName: string) => {
-    if (!confirm(`Are you sure you want to delete "${positionName}"? Committee members assigned to this position will be unassigned.`)) {
-      return;
-    }
-
-    try {
-      const { error } = await supabase
-        .from('committee_positions')
-        .delete()
-        .eq('id', positionId);
-
-      if (error) throw error;
-
-      toast.success('Position deleted successfully');
-      fetchPositions();
-    } catch (error) {
-      console.error('Error deleting position:', error);
-      toast.error('Failed to delete position');
-    }
-  };
-
-  const handleToggleActive = async (position: CommitteePosition) => {
-    try {
-      const { error } = await supabase
-        .from('committee_positions')
-        .update({ is_active: !position.is_active })
-        .eq('id', position.id);
-
-      if (error) throw error;
-
-      toast.success(`Position ${!position.is_active ? 'activated' : 'deactivated'}`);
-      fetchPositions();
-    } catch (error) {
-      console.error('Error updating position:', error);
-      toast.error('Failed to update position');
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="text-center py-12">
-        <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
-        <p className="text-gray-600">Loading positions...</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold">Committee Positions</h2>
-          <p className="text-gray-600 mt-1">Manage custom committee positions for your organization</p>
-        </div>
-        <Button onClick={() => setShowCreateModal(true)} data-testid="button-create-position">
-          <Plus className="h-4 w-4 mr-2" />
-          Create Position
-        </Button>
-      </div>
-
-      {positions.length === 0 ? (
-        <Card className="p-12 text-center">
-          <User className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-          <h3 className="text-lg font-medium mb-2">No Positions Yet</h3>
-          <p className="text-gray-600 mb-4">Create committee positions like Chairman, Secretary, or Treasurer</p>
-          <Button onClick={() => setShowCreateModal(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Create Your First Position
-          </Button>
-        </Card>
-      ) : (
-        <div className="grid gap-4">
-          {positions.map(position => (
-            <Card key={position.id} className="p-6" data-testid={`position-${position.id}`}>
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-lg font-semibold">{position.name}</h3>
-                    {!position.is_active && (
-                      <span className="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded">Inactive</span>
-                    )}
-                    <span className="text-sm text-gray-500">Order: {position.display_order}</span>
-                  </div>
-                  {position.description && (
-                    <p className="text-gray-600 text-sm">{position.description}</p>
-                  )}
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      setSelectedPosition(position);
-                      setShowEditModal(true);
-                    }}
-                    data-testid={`button-edit-position-${position.id}`}
-                  >
-                    <Edit2 className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleToggleActive(position)}
-                    data-testid={`button-toggle-position-${position.id}`}
-                  >
-                    {position.is_active ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleDelete(position.id, position.name)}
-                    data-testid={`button-delete-position-${position.id}`}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
-      )}
-
-      {showCreateModal && (
-        <CreatePositionModal
-          organizationId={organizationId}
-          onClose={() => setShowCreateModal(false)}
-          onSuccess={() => {
-            setShowCreateModal(false);
-            fetchPositions();
-          }}
-        />
-      )}
-
-      {showEditModal && selectedPosition && (
-        <EditPositionModal
-          position={selectedPosition}
-          onClose={() => {
-            setShowEditModal(false);
-            setSelectedPosition(null);
-          }}
-          onSuccess={() => {
-            setShowEditModal(false);
-            setSelectedPosition(null);
-            fetchPositions();
-          }}
-        />
-      )}
-    </div>
-  );
-}
-
-// Create Position Modal
-interface CreatePositionModalProps {
-  organizationId: string;
-  onClose: () => void;
-  onSuccess: () => void;
-}
-
-function CreatePositionModal({ organizationId, onClose, onSuccess }: CreatePositionModalProps) {
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [displayOrder, setDisplayOrder] = useState(0);
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const { error } = await supabase
-        .from('committee_positions')
-        .insert({
-          organization_id: organizationId,
-          name,
-          description: description || null,
-          display_order: displayOrder,
-          is_active: true
-        });
-
-      if (error) throw error;
-
-      toast.success('Position created successfully');
-      onSuccess();
-    } catch (error) {
-      console.error('Error creating position:', error);
-      toast.error('Failed to create position');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50" data-testid="create-position-modal">
-      <div className="bg-white rounded-lg p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Create Committee Position</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700" data-testid="button-close-modal">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">Position Name *</label>
-            <Input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g., Chairman, Secretary, Treasurer"
-              required
-              data-testid="input-position-name"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Description</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Brief description of responsibilities"
-              className="w-full px-3 py-2 border rounded-md min-h-[80px]"
-              data-testid="input-position-description"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Display Order</label>
-            <Input
-              type="number"
-              value={displayOrder}
-              onChange={(e) => setDisplayOrder(parseInt(e.target.value) || 0)}
-              placeholder="0"
-              data-testid="input-display-order"
-            />
-            <p className="text-xs text-gray-500 mt-1">Lower numbers appear first in lists</p>
-          </div>
-
-          <div className="flex justify-end gap-2 mt-6">
-            <Button type="button" variant="outline" onClick={onClose} data-testid="button-cancel">
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading} data-testid="button-submit-create-position">
-              {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-              Create Position
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-// Edit Position Modal
-interface EditPositionModalProps {
-  position: CommitteePosition;
-  onClose: () => void;
-  onSuccess: () => void;
-}
-
-function EditPositionModal({ position, onClose, onSuccess }: EditPositionModalProps) {
-  const [name, setName] = useState(position.name);
-  const [description, setDescription] = useState(position.description || '');
-  const [displayOrder, setDisplayOrder] = useState(position.display_order);
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const { error } = await supabase
-        .from('committee_positions')
-        .update({
-          name,
-          description: description || null,
-          display_order: displayOrder,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', position.id);
-
-      if (error) throw error;
-
-      toast.success('Position updated successfully');
-      onSuccess();
-    } catch (error) {
-      console.error('Error updating position:', error);
-      toast.error('Failed to update position');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50" data-testid="edit-position-modal">
-      <div className="bg-white rounded-lg p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Edit Committee Position</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700" data-testid="button-close-edit-modal">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">Position Name *</label>
-            <Input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g., Chairman, Secretary, Treasurer"
-              required
-              data-testid="input-edit-position-name"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Description</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Brief description of responsibilities"
-              className="w-full px-3 py-2 border rounded-md min-h-[80px]"
-              data-testid="input-edit-position-description"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Display Order</label>
-            <Input
-              type="number"
-              value={displayOrder}
-              onChange={(e) => setDisplayOrder(parseInt(e.target.value) || 0)}
-              placeholder="0"
-              data-testid="input-edit-display-order"
-            />
-            <p className="text-xs text-gray-500 mt-1">Lower numbers appear first in lists</p>
-          </div>
-
-          <div className="flex justify-end gap-2 mt-6">
-            <Button type="button" variant="outline" onClick={onClose} data-testid="button-cancel-edit">
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading} data-testid="button-submit-edit-position">
-              {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-              Save Changes
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
 // Member Badges View Component
 interface MemberBadgesViewProps {
   organizationId: string;

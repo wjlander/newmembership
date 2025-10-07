@@ -9,6 +9,7 @@ export interface User {
     last_name: string
     role: string
     is_active: boolean
+    status: string
     organization?: {
       id: string
       name: string
@@ -65,7 +66,7 @@ export const auth = {
     // Get user profile first
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('id, first_name, last_name, role, is_active, organization_id')
+      .select('id, first_name, last_name, role, is_active, status, organization_id')
       .eq('user_id', user.id)
       .maybeSingle()
 
@@ -77,6 +78,20 @@ export const auth = {
     if (!profile) {
       console.warn('No profile found for user:', user.id)
       return null
+    }
+
+    // Block unapproved members from accessing the system
+    // Allow super admins to bypass this check (they have no organization)
+    if (profile.role !== 'super_admin') {
+      if (!profile.is_active || profile.status !== 'active') {
+        console.warn('User is not approved:', { 
+          is_active: profile.is_active, 
+          status: profile.status 
+        })
+        // Sign out the user automatically
+        await supabase.auth.signOut()
+        return null
+      }
     }
 
     console.log('Profile loaded:', { role: profile.role, has_org: !!profile.organization_id })
@@ -107,6 +122,7 @@ export const auth = {
           last_name: profile.last_name,
           role: profile.role,
           is_active: profile.is_active,
+          status: profile.status,
           organization
         }
       }

@@ -186,6 +186,7 @@ export const committeePositions = pgTable('committee_positions', {
   organization_id: uuid('organization_id').references(() => organizations.id, { onDelete: 'cascade' }).notNull(),
   name: text('name').notNull(),
   description: text('description'),
+  permissions: jsonb('permissions').default(sql`'[]'::jsonb`),
   display_order: integer('display_order').default(0),
   is_active: boolean('is_active').default(true),
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
