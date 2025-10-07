@@ -5,8 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Plus, Edit, Trash2, Users, X, Loader2 } from 'lucide-react'
+import { Plus, Edit, Trash2, Users, X, Loader2, UserPlus } from 'lucide-react'
 import { toast } from 'sonner'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 
 interface Committee {
   id: string
@@ -19,6 +21,33 @@ interface Committee {
   updated_at: string
 }
 
+interface CommitteeMember {
+  id: string
+  committee_id: string
+  profile_id: string
+  position_id: string | null
+  profiles: {
+    first_name: string
+    last_name: string
+    email: string
+  }
+  committee_positions: {
+    name: string
+  } | null
+}
+
+interface Profile {
+  id: string
+  first_name: string
+  last_name: string
+  email: string
+}
+
+interface CommitteePosition {
+  id: string
+  name: string
+}
+
 interface AdminCommitteesViewProps {
   organizationId: string
 }
@@ -28,6 +57,7 @@ export function AdminCommitteesView({ organizationId }: AdminCommitteesViewProps
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editingCommittee, setEditingCommittee] = useState<Committee | null>(null)
+  const [managingMembersCommittee, setManagingMembersCommittee] = useState<Committee | null>(null)
 
   useEffect(() => {
     loadCommittees()
@@ -126,6 +156,19 @@ export function AdminCommitteesView({ organizationId }: AdminCommitteesViewProps
     )
   }
 
+  if (managingMembersCommittee) {
+    return (
+      <CommitteeMembersManager
+        organizationId={organizationId}
+        committee={managingMembersCommittee}
+        onBack={() => {
+          setManagingMembersCommittee(null)
+          loadCommittees()
+        }}
+      />
+    )
+  }
+
   return (
     <div className="space-y-6">
       <Card>
@@ -169,6 +212,14 @@ export function AdminCommitteesView({ organizationId }: AdminCommitteesViewProps
                         )}
                       </div>
                       <div className="flex items-center gap-2 ml-4">
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => setManagingMembersCommittee(committee)}
+                        >
+                          <Users className="h-4 w-4 mr-1" />
+                          Members
+                        </Button>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -329,5 +380,308 @@ function CommitteeForm({ organizationId, committee, onSave, onCancel }: Committe
         </form>
       </CardContent>
     </Card>
+  )
+}
+
+interface CommitteeMembersManagerProps {
+  organizationId: string
+  committee: Committee
+  onBack: () => void
+}
+
+function CommitteeMembersManager({ organizationId, committee, onBack }: CommitteeMembersManagerProps) {
+  const [members, setMembers] = useState<CommitteeMember[]>([])
+  const [availableProfiles, setAvailableProfiles] = useState<Profile[]>([])
+  const [positions, setPositions] = useState<CommitteePosition[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showAddDialog, setShowAddDialog] = useState(false)
+  const [selectedProfileId, setSelectedProfileId] = useState<string>('')
+  const [selectedPositionId, setSelectedPositionId] = useState<string>('')
+  const [adding, setAdding] = useState(false)
+  const [removingId, setRemovingId] = useState<string | null>(null)
+
+  useEffect(() => {
+    loadData()
+  }, [committee.id, organizationId])
+
+  const loadData = async () => {
+    try {
+      setLoading(true)
+
+      const [membersRes, positionsRes, profilesRes] = await Promise.all([
+        supabase
+          .from('committee_members')
+          .select(`
+            id,
+            committee_id,
+            profile_id,
+            position_id,
+            profiles!inner(first_name, last_name, email),
+            committee_positions(name)
+          `)
+          .eq('committee_id', committee.id),
+        supabase
+          .from('committee_positions')
+          .select('id, name')
+          .eq('organization_id', organizationId)
+          .eq('is_active', true)
+          .order('display_order'),
+        supabase
+          .from('profiles')
+          .select('id, first_name, last_name, email')
+          .eq('organization_id', organizationId)
+          .eq('is_active', true)
+          .order('last_name')
+      ])
+
+      if (membersRes.error) throw membersRes.error
+      if (positionsRes.error) throw positionsRes.error
+      if (profilesRes.error) throw profilesRes.error
+
+      setMembers(membersRes.data as any || [])
+      setPositions(positionsRes.data || [])
+      
+      // Filter out profiles that are already members
+      const memberProfileIds = new Set(membersRes.data?.map(m => m.profile_id) || [])
+      const available = (profilesRes.data || []).filter(p => !memberProfileIds.has(p.id))
+      setAvailableProfiles(available)
+    } catch (error) {
+      console.error('Error loading committee members:', error)
+      toast.error('Failed to load committee members')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleAddMember = async () => {
+    if (!selectedProfileId) {
+      toast.error('Please select a member')
+      return
+    }
+
+    try {
+      setAdding(true)
+
+      const { error } = await supabase
+        .from('committee_members')
+        .insert({
+          committee_id: committee.id,
+          profile_id: selectedProfileId,
+          position_id: selectedPositionId || null
+        })
+
+      if (error) throw error
+
+      toast.success('Member added to committee')
+      setShowAddDialog(false)
+      setSelectedProfileId('')
+      setSelectedPositionId('')
+      loadData()
+    } catch (error: any) {
+      console.error('Error adding member:', error)
+      toast.error(error.message || 'Failed to add member')
+    } finally {
+      setAdding(false)
+    }
+  }
+
+  const handleRemoveMember = async (memberId: string) => {
+    if (!confirm('Are you sure you want to remove this member from the committee?')) {
+      return
+    }
+
+    try {
+      setRemovingId(memberId)
+
+      const { error } = await supabase
+        .from('committee_members')
+        .delete()
+        .eq('id', memberId)
+
+      if (error) throw error
+
+      toast.success('Member removed from committee')
+      loadData()
+    } catch (error: any) {
+      console.error('Error removing member:', error)
+      toast.error(error.message || 'Failed to remove member')
+    } finally {
+      setRemovingId(null)
+    }
+  }
+
+  const handleUpdatePosition = async (memberId: string, newPositionId: string) => {
+    try {
+      const { error } = await supabase
+        .from('committee_members')
+        .update({ position_id: newPositionId || null })
+        .eq('id', memberId)
+
+      if (error) throw error
+
+      toast.success('Position updated')
+      loadData()
+    } catch (error: any) {
+      console.error('Error updating position:', error)
+      toast.error(error.message || 'Failed to update position')
+    }
+  }
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="p-8">
+          <div className="flex items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle>Manage Members: {committee.name}</CardTitle>
+              <CardDescription>
+                Add or remove members from this committee and assign positions
+              </CardDescription>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={() => setShowAddDialog(true)}>
+                <UserPlus className="h-4 w-4 mr-2" />
+                Add Member
+              </Button>
+              <Button variant="outline" onClick={onBack}>
+                <X className="h-4 w-4 mr-2" />
+                Back
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {members.length === 0 ? (
+            <p className="text-center text-gray-500 py-8">
+              No members in this committee yet. Click "Add Member" to add one.
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {members.map((member) => (
+                <Card key={member.id}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3">
+                          <Users className="h-5 w-5 text-gray-400" />
+                          <div>
+                            <h3 className="font-semibold">
+                              {member.profiles.first_name} {member.profiles.last_name}
+                            </h3>
+                            <p className="text-sm text-gray-600">{member.profiles.email}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-48">
+                          <Select
+                            value={member.position_id || 'none'}
+                            onValueChange={(value) => handleUpdatePosition(member.id, value === 'none' ? '' : value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="No position" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-white">
+                              <SelectItem value="none">No position</SelectItem>
+                              {positions.map((pos) => (
+                                <SelectItem key={pos.id} value={pos.id}>
+                                  {pos.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveMember(member.id)}
+                          disabled={removingId === member.id}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          {removingId === member.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Member to {committee.name}</DialogTitle>
+            <DialogDescription>
+              Select a member and optionally assign them a position
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Select Member</Label>
+              <Select value={selectedProfileId} onValueChange={setSelectedProfileId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a member..." />
+                </SelectTrigger>
+                <SelectContent className="bg-white max-h-[300px]">
+                  {availableProfiles.length === 0 ? (
+                    <div className="p-2 text-sm text-gray-500">No available members</div>
+                  ) : (
+                    availableProfiles.map((profile) => (
+                      <SelectItem key={profile.id} value={profile.id}>
+                        {profile.first_name} {profile.last_name} ({profile.email})
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Position (Optional)</Label>
+              <Select value={selectedPositionId} onValueChange={setSelectedPositionId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="No position" />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  <SelectItem value="">No position</SelectItem>
+                  {positions.map((pos) => (
+                    <SelectItem key={pos.id} value={pos.id}>
+                      {pos.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="flex justify-end gap-3">
+            <Button variant="outline" onClick={() => setShowAddDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddMember} disabled={adding || !selectedProfileId}>
+              {adding && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Add Member
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
   )
 }
