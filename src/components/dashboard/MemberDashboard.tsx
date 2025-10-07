@@ -5026,7 +5026,7 @@ interface Subscriber {
   first_name: string | null;
   last_name: string | null;
   status: string;
-  subscribed_at: string;
+  subscription_date: string;
   subscription_source: string | null;
 }
 
@@ -5043,10 +5043,10 @@ function SubscribersView({ organizationId }: SubscribersViewProps) {
   const fetchSubscribers = async () => {
     try {
       const { data, error } = await supabase
-        .from('subscribers')
+        .from('email_subscribers')
         .select('*')
         .eq('organization_id', organizationId)
-        .order('subscribed_at', { ascending: false });
+        .order('subscription_date', { ascending: false });
 
       if (error) throw error;
       setSubscribers(data || []);
@@ -5063,10 +5063,10 @@ function SubscribersView({ organizationId }: SubscribersViewProps) {
   const handleUnsubscribe = async (subscriberId: string) => {
     try {
       const { error } = await supabase
-        .from('subscribers')
+        .from('email_subscribers')
         .update({
           status: 'unsubscribed',
-          unsubscribed_at: new Date().toISOString()
+          unsubscription_date: new Date().toISOString()
         })
         .eq('id', subscriberId);
 
@@ -5093,7 +5093,7 @@ function SubscribersView({ organizationId }: SubscribersViewProps) {
         columns: [
           { key: 'email', header: 'Email' },
           { key: 'status', header: 'Status' },
-          { key: 'subscribed_at', header: 'Subscribed At' }
+          { key: 'subscription_date', header: 'Subscribed At' }
         ],
         filename: 'subscribers'
       });
@@ -5182,7 +5182,7 @@ function SubscribersView({ organizationId }: SubscribersViewProps) {
                         </Badge>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatDate(subscriber.subscribed_at)}
+                        {formatDate(subscriber.subscription_date)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         {subscriber.status === 'subscribed' && (
@@ -5239,14 +5239,14 @@ function AddSubscriberModal({ organizationId, onClose, onSuccess }: AddSubscribe
 
     try {
       const { error } = await supabase
-        .from('subscribers')
+        .from('email_subscribers')
         .insert({
           organization_id: organizationId,
           email: formData.email,
           first_name: formData.first_name || null,
           last_name: formData.last_name || null,
           status: 'subscribed',
-          subscribed_at: new Date().toISOString(),
+          subscription_date: new Date().toISOString(),
           subscription_source: 'admin'
         });
 
