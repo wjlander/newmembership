@@ -7,6 +7,12 @@ A comprehensive membership management system for multiple organizations with com
 ## Recent Changes
 
 **2025-10-07**:
+- Fixed mailing list subscriber loading and email campaign sending - created missing database tables and corrected schema mismatches
+- Created `mailing_lists` table with organization linking and subscriber count tracking
+- Created `subscriber_lists` junction table for many-to-many relationship between subscribers and mailing lists
+- Added `mailing_list_id` column to `email_campaigns` table for list targeting
+- Fixed server.js to use correct column name `mailing_list_id` instead of `list_id`
+- Fixed frontend subscriber management to use `email_subscribers` table and `subscription_date` column
 - Fixed email campaign sending to mailing lists - configured dual-server development setup (Vite + Express)
 - Added Vite API proxy to forward `/api/*` requests to Express backend (port 3000)
 - Updated dev workflow to run both Vite (port 5000) and Express (port 3000) servers concurrently
