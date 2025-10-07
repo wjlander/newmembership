@@ -366,7 +366,7 @@ export function MemberDashboard() {
                   >
                     <SelectValue placeholder="Admin Menu" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-h-[400px] overflow-y-auto">
                     <SelectItem value="admin-members">Members</SelectItem>
                     <SelectItem value="admin-settings">Organization Settings</SelectItem>
                     <SelectItem value="admin-mailing">Mailing List</SelectItem>
