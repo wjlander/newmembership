@@ -65,6 +65,32 @@ The backend includes Express.js API endpoints for custom domain management:
 - Added complete audit trail for all approval/rejection actions
 - See `SECURITY_FIX_MEMBER_APPROVAL.md` for detailed security documentation
 
+**Unapproved Member Blocking** (2025-10-07):
+- **Login Prevention**: Members with `is_active=false` OR `status!='active'` cannot log into the system
+- **Automatic Sign-Out**: Any user with inactive/pending/suspended/rejected status is immediately signed out during authentication check
+- **Super Admin Bypass**: Super admins (`organization_id = NULL`) bypass all approval status checks for system management
+- **Implementation**: Built into `getCurrentUser()` in `src/lib/auth.ts`
+
+**Position-Based Permissions System** (2025-10-07):
+- **Granular Permissions**: 12 permissions available for delegation to committee positions:
+  - `approve_members`: Approve/reject pending member applications
+  - `manage_members`: Edit member profiles and view member details
+  - `manage_memberships`: Create/edit/delete membership records
+  - `view_reports`: Access membership and analytics reports
+  - `export_reports`: Export reports and member data
+  - `manage_events`: Create/edit/delete events and manage registrations
+  - `manage_emails`: Configure email workflows and templates
+  - `manage_mailing_lists`: Create/edit mailing lists and manage subscribers
+  - `manage_committees`: Create/edit committees and assign members
+  - `manage_settings`: Configure organization settings and features
+  - `manage_domains`: Manage custom domains and DNS verification
+  - `full_admin`: Complete administrative access (equivalent to admin role)
+- **Database Schema**: `committee_positions.permissions` JSONB field stores array of permission strings
+- **Permission Aggregation**: Users with `role='admin'` or `role='super_admin'` automatically get all permissions; committee members inherit permissions from their assigned position
+- **Admin UI**: Complete permission management interface in Admin → Committee Positions view
+- **Implementation**: `usePermissions` hook (`src/hooks/usePermissions.ts`) provides `hasPermission()`, `hasAnyPermission()`, and `hasAllPermissions()` methods
+- **Access Control**: All admin features check specific permissions instead of just checking `isAdmin` flag
+
 ### Design Patterns & Key Decisions
 
 -   **Priority-Based Tenant Detection**: Custom domains checked first, then subdomains, then URL parameters - provides flexibility while supporting branded experiences
