@@ -6465,11 +6465,13 @@ function CreateCommitteeModal({ organizationId, mailingLists, onClose, onSuccess
       let finalMailingListId = mailingListId || null;
 
       if (createMailingList) {
+        const mailingListSlug = generateSlug(`${name}-members`);
         const { data: newList, error: listError } = await supabase
           .from('mailing_lists')
           .insert({
             organization_id: organizationId,
             name: `${name} Members`,
+            slug: mailingListSlug,
             description: `Mailing list for ${name} committee members`
           })
           .select()
