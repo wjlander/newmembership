@@ -1050,7 +1050,7 @@ function RenewalModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-gray-500/50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b sticky top-0 bg-white z-10">
           <div className="flex items-center justify-between">
@@ -2388,7 +2388,7 @@ function AddDomainModal({ organizationId, onClose, onSuccess }: AddDomainModalPr
   };
 
   return (
-    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-gray-500/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Add Custom Domain</h2>
@@ -2990,7 +2990,7 @@ function AddMemberModal({ organizationId, onClose, onSuccess }: AddMemberModalPr
   };
 
   return (
-    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" data-testid="modal-add-member">
+    <div className="fixed inset-0 bg-gray-500/50 flex items-center justify-center z-50 p-4" data-testid="modal-add-member">
       <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <CardHeader className="pb-4">
           <CardTitle className="text-2xl">Add New Member</CardTitle>
@@ -3177,7 +3177,7 @@ function EditMemberModal({ member, onClose, onSuccess }: EditMemberModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50" data-testid="modal-edit-member">
+    <div className="fixed inset-0 bg-gray-500/50 flex items-center justify-center z-50" data-testid="modal-edit-member">
       <Card className="w-full max-w-md mx-4">
         <CardHeader>
           <CardTitle>Edit Member</CardTitle>
@@ -3420,7 +3420,7 @@ function MemberNotesModal({ member, organizationId, onClose }: MemberNotesModalP
   };
 
   return (
-    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" data-testid="modal-member-notes" onClick={onClose}>
+    <div className="fixed inset-0 bg-gray-500/50 flex items-center justify-center z-50 p-4" data-testid="modal-member-notes" onClick={onClose}>
       <Card className="w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
         <CardHeader className="border-b">
           <div className="flex items-center justify-between">
@@ -4951,7 +4951,7 @@ function CreateEditListModal({ organizationId, list, onClose, onSuccess }: Creat
   };
 
   return (
-    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-gray-500/50 flex items-center justify-center z-50">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>{list ? 'Edit Mailing List' : 'Create Mailing List'}</CardTitle>
@@ -5263,7 +5263,7 @@ function AddSubscriberModal({ organizationId, onClose, onSuccess }: AddSubscribe
   };
 
   return (
-    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50" data-testid="modal-add-subscriber">
+    <div className="fixed inset-0 bg-gray-500/50 flex items-center justify-center z-50" data-testid="modal-add-subscriber">
       <Card className="w-full max-w-md mx-4">
         <CardHeader>
           <CardTitle>Add Subscriber</CardTitle>
@@ -5600,7 +5600,7 @@ function CreateCampaignModal({ organizationId, onClose, onSuccess }: CreateCampa
   };
 
   return (
-    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 overflow-y-auto" data-testid="modal-create-campaign">
+    <div className="fixed inset-0 bg-gray-500/50 flex items-center justify-center z-50 overflow-y-auto" data-testid="modal-create-campaign">
       <Card className="w-full max-w-2xl mx-4 my-8">
         <CardHeader>
           <CardTitle>Create Email Campaign</CardTitle>
@@ -7038,7 +7038,7 @@ function CreateEditBadgeModal({ organizationId, badge, onClose, onSuccess }: Cre
   };
 
   return (
-    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" data-testid="modal-create-edit-badge">
+    <div className="fixed inset-0 bg-gray-500/50 flex items-center justify-center z-50 p-4" data-testid="modal-create-edit-badge">
       <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <CardHeader>
           <CardTitle>{badge ? 'Edit Badge' : 'Create New Badge'}</CardTitle>
@@ -7238,7 +7238,7 @@ function AwardBadgeModal({ organizationId, badge, onClose, onSuccess }: AwardBad
   };
 
   return (
-    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" data-testid="modal-award-badge">
+    <div className="fixed inset-0 bg-gray-500/50 flex items-center justify-center z-50 p-4" data-testid="modal-award-badge">
       <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <CardHeader>
           <CardTitle>Award Badge: {badge.name}</CardTitle>
@@ -7382,7 +7382,7 @@ function ViewBadgeMembersModal({ badge, onClose, onSuccess }: ViewBadgeMembersMo
   };
 
   return (
-    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" data-testid="modal-view-badge-members">
+    <div className="fixed inset-0 bg-gray-500/50 flex items-center justify-center z-50 p-4" data-testid="modal-view-badge-members">
       <Card className="w-full max-w-3xl max-h-[90vh] overflow-y-auto">
         <CardHeader>
           <CardTitle>Members with Badge: {badge.name}</CardTitle>
@@ -8250,7 +8250,7 @@ function ReminderFormModal({ organizationId, reminder, onClose, onSuccess }: Rem
   };
 
   return (
-    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-gray-500/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <Card className="w-full max-w-3xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <CardHeader>
           <CardTitle data-testid="modal-title-reminder">
@@ -8443,7 +8443,7 @@ function ReminderLogsModal({ reminderId, reminderName, onClose }: ReminderLogsMo
   };
 
   return (
-    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-gray-500/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <Card className="w-full max-w-5xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <CardHeader>
           <CardTitle data-testid="modal-title-logs">Reminder Logs: {reminderName}</CardTitle>
@@ -9149,7 +9149,7 @@ function EmailTemplatesView({ organizationId, profileId }: EmailTemplatesViewPro
       )}
 
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-gray-500/50 flex items-center justify-center z-50 p-4">
           <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <CardHeader>
               <CardTitle>Create Email Template</CardTitle>
@@ -9279,7 +9279,7 @@ function EmailTemplatesView({ organizationId, profileId }: EmailTemplatesViewPro
       )}
 
       {showEditModal && selectedTemplate && (
-        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-gray-500/50 flex items-center justify-center z-50 p-4">
           <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <CardHeader>
               <CardTitle>Edit Email Template</CardTitle>
@@ -9409,7 +9409,7 @@ function EmailTemplatesView({ organizationId, profileId }: EmailTemplatesViewPro
       )}
 
       {showPreviewModal && selectedTemplate && (
-        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-gray-500/50 flex items-center justify-center z-50 p-4">
           <Card className="w-full max-w-3xl max-h-[90vh] overflow-y-auto">
             <CardHeader>
               <CardTitle>Template Preview: {selectedTemplate.name}</CardTitle>
@@ -10005,7 +10005,7 @@ function CustomReportsView({ organizationId, profileId }: CustomReportsViewProps
 
       {/* Create Report Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-gray-500/50 flex items-center justify-center z-50 p-4">
           <Card className="w-full max-w-3xl max-h-[90vh] overflow-y-auto">
             <CardHeader>
               <CardTitle>Create New Report</CardTitle>
@@ -10187,7 +10187,7 @@ function CustomReportsView({ organizationId, profileId }: CustomReportsViewProps
 
       {/* Edit Report Modal */}
       {showEditModal && (
-        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-gray-500/50 flex items-center justify-center z-50 p-4">
           <Card className="w-full max-w-3xl max-h-[90vh] overflow-y-auto">
             <CardHeader>
               <CardTitle>Edit Report</CardTitle>
@@ -10370,7 +10370,7 @@ function CustomReportsView({ organizationId, profileId }: CustomReportsViewProps
 
       {/* Results Modal */}
       {showResultsModal && selectedReport && (
-        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-gray-500/50 flex items-center justify-center z-50 p-4">
           <Card className="w-full max-w-6xl max-h-[90vh] overflow-y-auto">
             <CardHeader>
               <div className="flex items-center justify-between">
