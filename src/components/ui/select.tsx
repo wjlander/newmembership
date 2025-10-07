@@ -84,7 +84,7 @@ export const SelectContent = React.forwardRef<HTMLDivElement, SelectContentProps
         <div
           ref={ref}
           className={cn(
-            "absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border bg-popover p-1 text-popover-foreground shadow-md",
+            "absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border bg-white p-1 shadow-lg",
             className
           )}
           {...props}

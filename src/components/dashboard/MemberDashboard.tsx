@@ -1811,7 +1811,7 @@ function MembersAdminView({ organizationId }: MembersAdminViewProps) {
             setSelectedMembershipYears([new Date().getFullYear()]);
           }
         }}>
-          <DialogContent className="max-w-2xl" data-testid="modal-approve-member">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" data-testid="modal-approve-member">
             <DialogHeader>
               <DialogTitle>Approve Member & Create Memberships</DialogTitle>
               <DialogDescription>
@@ -1819,7 +1819,7 @@ function MembersAdminView({ organizationId }: MembersAdminViewProps) {
               </DialogDescription>
             </DialogHeader>
             
-            <div className="space-y-4">
+            <div className="space-y-4 pb-4">
               {loadingFormResponse && (
                 <div className="rounded-lg bg-blue-50 p-3 text-sm text-blue-800 flex items-center gap-2">
                   <Loader2 className="h-4 w-4 animate-spin" />
