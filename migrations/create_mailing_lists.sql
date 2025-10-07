@@ -20,18 +20,18 @@ CREATE INDEX IF NOT EXISTS idx_mailing_lists_slug ON mailing_lists(slug);
 CREATE TABLE IF NOT EXISTS subscriber_lists (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     subscriber_id uuid REFERENCES email_subscribers(id) ON DELETE CASCADE NOT NULL,
-    list_id uuid REFERENCES mailing_lists(id) ON DELETE CASCADE NOT NULL,
+    mailing_list_id uuid REFERENCES mailing_lists(id) ON DELETE CASCADE NOT NULL,
     status text DEFAULT 'subscribed' CHECK (status IN ('subscribed', 'unsubscribed', 'pending')),
     subscribed_at timestamptz DEFAULT now(),
     unsubscribed_at timestamptz,
     created_at timestamptz DEFAULT now(),
     updated_at timestamptz DEFAULT now(),
-    UNIQUE(subscriber_id, list_id)
+    UNIQUE(subscriber_id, mailing_list_id)
 );
 
 -- Create indexes for junction table
 CREATE INDEX IF NOT EXISTS idx_subscriber_lists_subscriber_id ON subscriber_lists(subscriber_id);
-CREATE INDEX IF NOT EXISTS idx_subscriber_lists_list_id ON subscriber_lists(list_id);
+CREATE INDEX IF NOT EXISTS idx_subscriber_lists_mailing_list_id ON subscriber_lists(mailing_list_id);
 CREATE INDEX IF NOT EXISTS idx_subscriber_lists_status ON subscriber_lists(status);
 
 -- Add mailing_list_id to email_campaigns table
@@ -96,20 +96,20 @@ BEGIN
     IF TG_OP = 'INSERT' THEN
         UPDATE mailing_lists 
         SET subscriber_count = subscriber_count + 1
-        WHERE id = NEW.list_id AND NEW.status = 'subscribed';
+        WHERE id = NEW.mailing_list_id AND NEW.status = 'subscribed';
     ELSIF TG_OP = 'DELETE' THEN
         UPDATE mailing_lists 
         SET subscriber_count = subscriber_count - 1
-        WHERE id = OLD.list_id AND OLD.status = 'subscribed' AND subscriber_count > 0;
+        WHERE id = OLD.mailing_list_id AND OLD.status = 'subscribed' AND subscriber_count > 0;
     ELSIF TG_OP = 'UPDATE' THEN
         IF OLD.status = 'subscribed' AND NEW.status != 'subscribed' THEN
             UPDATE mailing_lists 
             SET subscriber_count = subscriber_count - 1
-            WHERE id = OLD.list_id AND subscriber_count > 0;
+            WHERE id = OLD.mailing_list_id AND subscriber_count > 0;
         ELSIF OLD.status != 'subscribed' AND NEW.status = 'subscribed' THEN
             UPDATE mailing_lists 
             SET subscriber_count = subscriber_count + 1
-            WHERE id = NEW.list_id;
+            WHERE id = NEW.mailing_list_id;
         END IF;
     END IF;
     RETURN NULL;
