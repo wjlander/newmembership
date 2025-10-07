@@ -5617,7 +5617,7 @@ function CreateCampaignModal({ organizationId, onClose, onSuccess }: CreateCampa
                 required
                 data-testid="input-campaign-title"
               />
-              <p className="text-xs text-gray-500 mt-1">Internal name for this campaign</p>
+              <p className="text-xs text-gray-300 mt-1">Internal name for this campaign</p>
             </div>
             <div>
               <label className="text-sm font-medium">Mailing List *</label>
@@ -5635,7 +5635,7 @@ function CreateCampaignModal({ organizationId, onClose, onSuccess }: CreateCampa
                   </option>
                 ))}
               </select>
-              <p className="text-xs text-gray-500 mt-1">The campaign will be sent to subscribers of this list</p>
+              <p className="text-xs text-gray-300 mt-1">The campaign will be sent to subscribers of this list</p>
             </div>
             <div>
               <label className="text-sm font-medium">Email Subject *</label>
@@ -5646,7 +5646,7 @@ function CreateCampaignModal({ organizationId, onClose, onSuccess }: CreateCampa
                 required
                 data-testid="input-campaign-subject"
               />
-              <p className="text-xs text-gray-500 mt-1">This will appear in recipients' inboxes</p>
+              <p className="text-xs text-gray-300 mt-1">This will appear in recipients' inboxes</p>
             </div>
             <div>
               <label className="text-sm font-medium">Email Content *</label>
@@ -5659,7 +5659,7 @@ function CreateCampaignModal({ organizationId, onClose, onSuccess }: CreateCampa
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 data-testid="input-campaign-content"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-300 mt-1">
                 HTML formatting is supported. Use template variables: {'{'}{'{'} first_name{'}'}{'}'}, {'{'}{'{'} last_name{'}'}{'}'}, {'{'}{'{'} email{'}'}{'}'}
               </p>
             </div>
