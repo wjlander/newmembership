@@ -49,9 +49,16 @@ export const auth = {
   },
 
   async getCurrentUser(): Promise<User | null> {
-    const { data: { user } } = await supabase.auth.getUser()
+    try {
+      // Add timeout to prevent infinite hanging
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Supabase auth timeout')), 5000)
+      })
 
-    if (!user) return null
+      const authPromise = supabase.auth.getUser()
+      const { data: { user } } = await Promise.race([authPromise, timeoutPromise])
+
+      if (!user) return null
 
     console.log('Getting profile for user:', user.id)
 
@@ -91,17 +98,21 @@ export const auth = {
       console.log('No organization_id (likely super admin)')
     }
 
-    return {
-      id: user.id,
-      email: user.email!,
-      profile: {
-        id: profile.id,
-        first_name: profile.first_name,
-        last_name: profile.last_name,
-        role: profile.role,
-        is_active: profile.is_active,
-        organization
+      return {
+        id: user.id,
+        email: user.email!,
+        profile: {
+          id: profile.id,
+          first_name: profile.first_name,
+          last_name: profile.last_name,
+          role: profile.role,
+          is_active: profile.is_active,
+          organization
+        }
       }
+    } catch (error) {
+      console.error('Error in getCurrentUser:', error)
+      return null
     }
   },
 
