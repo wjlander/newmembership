@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { supabase } from '@/lib/supabase/client'
 import { toast } from 'sonner'
-import { Mail, Plus, Trash2, Edit, Power, PowerOff } from 'lucide-react'
+import { Mail, Plus, Trash2, Edit, Power, PowerOff, Send } from 'lucide-react'
 
 interface EmailWorkflow {
   id: string
@@ -34,6 +34,7 @@ export function EmailWorkflowsManager({ organizationId }: EmailWorkflowsManagerP
   const [loading, setLoading] = useState(true)
   const [showAddWorkflow, setShowAddWorkflow] = useState(false)
   const [editingWorkflow, setEditingWorkflow] = useState<EmailWorkflow | null>(null)
+  const [testingWorkflow, setTestingWorkflow] = useState<EmailWorkflow | null>(null)
 
   useEffect(() => {
     fetchWorkflows()
@@ -181,6 +182,15 @@ export function EmailWorkflowsManager({ organizationId }: EmailWorkflowsManagerP
                         <Button
                           variant="outline"
                           size="sm"
+                          onClick={() => setTestingWorkflow(workflow)}
+                          data-testid={`button-test-workflow-${workflow.id}`}
+                          title="Send test email"
+                        >
+                          <Send className="h-4 w-4 text-blue-600" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
                           onClick={() => toggleWorkflow(workflow)}
                           data-testid={`button-toggle-workflow-${workflow.id}`}
                         >
@@ -229,6 +239,13 @@ export function EmailWorkflowsManager({ organizationId }: EmailWorkflowsManagerP
             setEditingWorkflow(null)
             fetchWorkflows()
           }}
+        />
+      )}
+
+      {testingWorkflow && (
+        <TestWorkflowModal
+          workflow={testingWorkflow}
+          onClose={() => setTestingWorkflow(null)}
         />
       )}
     </div>
@@ -493,6 +510,150 @@ function WorkflowEditor({ organizationId, workflow, onClose, onSuccess }: Workfl
               </Button>
             </div>
           </form>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+interface TestWorkflowModalProps {
+  workflow: EmailWorkflow
+  onClose: () => void
+}
+
+function TestWorkflowModal({ workflow, onClose }: TestWorkflowModalProps) {
+  const [testEmail, setTestEmail] = useState('')
+  const [testData, setTestData] = useState({
+    first_name: 'John',
+    last_name: 'Doe',
+    email: 'john.doe@example.com',
+    membership_type: 'Adult'
+  })
+  const [sending, setSending] = useState(false)
+
+  const handleSendTest = async () => {
+    if (!testEmail) {
+      toast.error('Please enter a test email address')
+      return
+    }
+
+    setSending(true)
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        throw new Error('Not authenticated')
+      }
+
+      const response = await fetch('/api/workflows/test', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          workflowId: workflow.id,
+          testEmail,
+          testData
+        })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to send test email')
+      }
+
+      toast.success('Test email sent successfully!')
+      onClose()
+    } catch (error: any) {
+      console.error('Error sending test email:', error)
+      toast.error(error.message || 'Failed to send test email')
+    } finally {
+      setSending(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
+      <Card className="w-full max-w-2xl">
+        <CardHeader>
+          <CardTitle>Test Email Workflow</CardTitle>
+          <CardDescription>
+            Send a test email to verify the workflow is configured correctly
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <h3 className="font-semibold mb-2">Workflow: {workflow.name}</h3>
+            <p className="text-sm text-gray-600">Subject: {workflow.email_subject}</p>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium">Test Email Address *</label>
+            <Input
+              type="email"
+              value={testEmail}
+              onChange={(e) => setTestEmail(e.target.value)}
+              placeholder="Enter email address to send test to"
+              required
+              data-testid="input-test-email"
+            />
+          </div>
+
+          <div className="border-t pt-4">
+            <h4 className="font-medium mb-3">Sample Data for Template Variables</h4>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-sm">First Name</label>
+                <Input
+                  value={testData.first_name}
+                  onChange={(e) => setTestData({ ...testData, first_name: e.target.value })}
+                  placeholder="John"
+                  data-testid="input-test-firstname"
+                />
+              </div>
+              <div>
+                <label className="text-sm">Last Name</label>
+                <Input
+                  value={testData.last_name}
+                  onChange={(e) => setTestData({ ...testData, last_name: e.target.value })}
+                  placeholder="Doe"
+                  data-testid="input-test-lastname"
+                />
+              </div>
+              <div>
+                <label className="text-sm">Email (for template)</label>
+                <Input
+                  value={testData.email}
+                  onChange={(e) => setTestData({ ...testData, email: e.target.value })}
+                  placeholder="john.doe@example.com"
+                  data-testid="input-test-member-email"
+                />
+              </div>
+              <div>
+                <label className="text-sm">Membership Type</label>
+                <Input
+                  value={testData.membership_type}
+                  onChange={(e) => setTestData({ ...testData, membership_type: e.target.value })}
+                  placeholder="Adult"
+                  data-testid="input-test-membership-type"
+                />
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              These values will be used to replace template variables like {'{{first_name}}'} in your email
+            </p>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4 border-t">
+            <Button type="button" variant="outline" onClick={onClose} data-testid="button-cancel-test">
+              Cancel
+            </Button>
+            <Button onClick={handleSendTest} disabled={sending} data-testid="button-send-test">
+              {sending ? 'Sending...' : 'Send Test Email'}
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
