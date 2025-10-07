@@ -48,24 +48,27 @@ CREATE POLICY "mailing_lists_admin_policy" ON mailing_lists
   );
 
 -- ============================================================================
--- MAILING LIST SUBSCRIPTIONS RLS POLICIES
+-- SUBSCRIBER LISTS RLS POLICIES
 -- ============================================================================
 
--- Enable RLS on mailing_list_subscriptions
-ALTER TABLE mailing_list_subscriptions ENABLE ROW LEVEL SECURITY;
+-- Enable RLS on subscriber_lists
+ALTER TABLE subscriber_lists ENABLE ROW LEVEL SECURITY;
 
 -- Drop existing policies if they exist
-DROP POLICY IF EXISTS "subscriptions_select_policy" ON mailing_list_subscriptions;
-DROP POLICY IF EXISTS "subscriptions_insert_policy" ON mailing_list_subscriptions;
-DROP POLICY IF EXISTS "subscriptions_update_policy" ON mailing_list_subscriptions;
-DROP POLICY IF EXISTS "subscriptions_delete_policy" ON mailing_list_subscriptions;
+DROP POLICY IF EXISTS "subscriptions_select_policy" ON subscriber_lists;
+DROP POLICY IF EXISTS "subscriptions_insert_policy" ON subscriber_lists;
+DROP POLICY IF EXISTS "subscriptions_update_policy" ON subscriber_lists;
+DROP POLICY IF EXISTS "subscriptions_delete_policy" ON subscriber_lists;
 
--- SELECT: Members can view their own subscriptions
-CREATE POLICY "subscriptions_select_policy" ON mailing_list_subscriptions
+-- SELECT: Members can view their own subscriptions and admins can view all
+CREATE POLICY "subscriptions_select_policy" ON subscriber_lists
   FOR SELECT
   USING (
     subscriber_id IN (
-      SELECT id FROM profiles WHERE user_id = auth.uid()
+      SELECT id FROM email_subscribers 
+      WHERE email IN (
+        SELECT email FROM profiles WHERE user_id = auth.uid()
+      )
     )
     OR EXISTS (
       SELECT 1 FROM profiles
@@ -74,12 +77,15 @@ CREATE POLICY "subscriptions_select_policy" ON mailing_list_subscriptions
     )
   );
 
--- INSERT: Members can subscribe themselves
-CREATE POLICY "subscriptions_insert_policy" ON mailing_list_subscriptions
+-- INSERT: Members can subscribe themselves, admins can subscribe anyone
+CREATE POLICY "subscriptions_insert_policy" ON subscriber_lists
   FOR INSERT
   WITH CHECK (
     subscriber_id IN (
-      SELECT id FROM profiles WHERE user_id = auth.uid()
+      SELECT id FROM email_subscribers 
+      WHERE email IN (
+        SELECT email FROM profiles WHERE user_id = auth.uid()
+      )
     )
     OR EXISTS (
       SELECT 1 FROM profiles
@@ -89,11 +95,14 @@ CREATE POLICY "subscriptions_insert_policy" ON mailing_list_subscriptions
   );
 
 -- UPDATE: Members can update their own subscriptions (e.g., unsubscribe)
-CREATE POLICY "subscriptions_update_policy" ON mailing_list_subscriptions
+CREATE POLICY "subscriptions_update_policy" ON subscriber_lists
   FOR UPDATE
   USING (
     subscriber_id IN (
-      SELECT id FROM profiles WHERE user_id = auth.uid()
+      SELECT id FROM email_subscribers 
+      WHERE email IN (
+        SELECT email FROM profiles WHERE user_id = auth.uid()
+      )
     )
     OR EXISTS (
       SELECT 1 FROM profiles
@@ -103,7 +112,10 @@ CREATE POLICY "subscriptions_update_policy" ON mailing_list_subscriptions
   )
   WITH CHECK (
     subscriber_id IN (
-      SELECT id FROM profiles WHERE user_id = auth.uid()
+      SELECT id FROM email_subscribers 
+      WHERE email IN (
+        SELECT email FROM profiles WHERE user_id = auth.uid()
+      )
     )
     OR EXISTS (
       SELECT 1 FROM profiles
@@ -113,11 +125,14 @@ CREATE POLICY "subscriptions_update_policy" ON mailing_list_subscriptions
   );
 
 -- DELETE: Members can delete their own subscriptions
-CREATE POLICY "subscriptions_delete_policy" ON mailing_list_subscriptions
+CREATE POLICY "subscriptions_delete_policy" ON subscriber_lists
   FOR DELETE
   USING (
     subscriber_id IN (
-      SELECT id FROM profiles WHERE user_id = auth.uid()
+      SELECT id FROM email_subscribers 
+      WHERE email IN (
+        SELECT email FROM profiles WHERE user_id = auth.uid()
+      )
     )
     OR EXISTS (
       SELECT 1 FROM profiles
@@ -174,9 +189,9 @@ CREATE POLICY "committees_admin_policy" ON committees
 
 COMMENT ON POLICY "mailing_lists_select_policy" ON mailing_lists IS 'Members can view active mailing lists in their organization';
 COMMENT ON POLICY "mailing_lists_admin_policy" ON mailing_lists IS 'Admins can manage all mailing lists';
-COMMENT ON POLICY "subscriptions_select_policy" ON mailing_list_subscriptions IS 'Members can view their own subscriptions';
-COMMENT ON POLICY "subscriptions_insert_policy" ON mailing_list_subscriptions IS 'Members can subscribe to mailing lists';
-COMMENT ON POLICY "subscriptions_update_policy" ON mailing_list_subscriptions IS 'Members can update their subscriptions';
-COMMENT ON POLICY "subscriptions_delete_policy" ON mailing_list_subscriptions IS 'Members can unsubscribe from mailing lists';
+COMMENT ON POLICY "subscriptions_select_policy" ON subscriber_lists IS 'Members can view their own subscriptions';
+COMMENT ON POLICY "subscriptions_insert_policy" ON subscriber_lists IS 'Members can subscribe to mailing lists';
+COMMENT ON POLICY "subscriptions_update_policy" ON subscriber_lists IS 'Members can update their subscriptions';
+COMMENT ON POLICY "subscriptions_delete_policy" ON subscriber_lists IS 'Members can unsubscribe from mailing lists';
 COMMENT ON POLICY "committees_select_policy" ON committees IS 'Members can view committees in their organization';
 COMMENT ON POLICY "committees_admin_policy" ON committees IS 'Admins can manage committees';

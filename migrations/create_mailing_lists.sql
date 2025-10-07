@@ -86,31 +86,8 @@ CREATE POLICY "Admins can delete mailing lists in their organization"
         )
     );
 
--- RLS policies for subscriber_lists
-CREATE POLICY "Users can view subscriber list associations in their organization"
-    ON subscriber_lists FOR SELECT
-    USING (
-        list_id IN (
-            SELECT id FROM mailing_lists WHERE organization_id IN (
-                SELECT organization_id FROM profiles WHERE user_id = auth.uid()
-            )
-        )
-        OR EXISTS (
-            SELECT 1 FROM profiles WHERE user_id = auth.uid() AND role = 'super_admin'
-        )
-    );
-
-CREATE POLICY "Admins can manage subscriber list associations"
-    ON subscriber_lists FOR ALL
-    USING (
-        list_id IN (
-            SELECT id FROM mailing_lists WHERE organization_id IN (
-                SELECT organization_id FROM profiles 
-                WHERE user_id = auth.uid() 
-                AND (role = 'admin' OR role = 'super_admin')
-            )
-        )
-    );
+-- Note: RLS policies for subscriber_lists are created in fix_member_access_rls.sql
+-- This allows members to manage their own subscriptions
 
 -- Function to update subscriber count on mailing lists
 CREATE OR REPLACE FUNCTION update_mailing_list_subscriber_count()
