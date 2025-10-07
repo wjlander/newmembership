@@ -6470,8 +6470,7 @@ function CreateCommitteeModal({ organizationId, mailingLists, onClose, onSuccess
           .insert({
             organization_id: organizationId,
             name: `${name} Members`,
-            description: `Mailing list for ${name} committee members`,
-            is_public: false
+            description: `Mailing list for ${name} committee members`
           })
           .select()
           .single();
