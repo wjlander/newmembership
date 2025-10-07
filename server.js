@@ -602,7 +602,7 @@ app.post('/api/campaigns/send', authenticateRequest, async (req, res) => {
             };
 
             Object.entries(replacements).forEach(([key, value]) => {
-              emailContent = emailContent.replace(new RegExp(key, 'g'), value);
+              emailContent = emailContent.replaceAll(key, value);
             });
 
             // Send via Resend
@@ -699,6 +699,91 @@ app.post('/api/campaigns/send', authenticateRequest, async (req, res) => {
 
     res.status(500).json({ 
       error: 'Failed to send campaign', 
+      details: error.message 
+    });
+  }
+});
+
+// Test email workflow endpoint
+app.post('/api/workflows/test', authenticateRequest, async (req, res) => {
+  try {
+    const { workflowId, testEmail, testData } = req.body;
+
+    if (!workflowId || !testEmail) {
+      return res.status(400).json({ error: 'Workflow ID and test email are required' });
+    }
+
+    // Check if Resend is configured
+    if (!resend) {
+      return res.status(500).json({ 
+        error: 'Email service not configured',
+        message: 'RESEND_API_KEY is not set in environment variables'
+      });
+    }
+
+    const supabaseClient = req.supabase;
+
+    // Get workflow details
+    const { data: workflow, error: workflowError } = await supabaseClient
+      .from('email_workflows')
+      .select('*')
+      .eq('id', workflowId)
+      .single();
+
+    if (workflowError || !workflow) {
+      return res.status(404).json({ error: 'Workflow not found' });
+    }
+
+    // Check authorization - user must be admin of workflow's organization
+    if (req.user.profile.organization_id !== workflow.organization_id && req.user.profile.role !== 'super_admin') {
+      return res.status(403).json({ error: 'Not authorized to test this workflow' });
+    }
+
+    // Replace template variables in subject and content
+    const replacements = {
+      '{{first_name}}': testData?.first_name || 'John',
+      '{{last_name}}': testData?.last_name || 'Doe',
+      '{{email}}': testData?.email || 'test@example.com',
+      '{{membership_type}}': testData?.membership_type || 'Adult'
+    };
+
+    let emailSubject = workflow.email_subject;
+    let emailContent = workflow.email_template;
+
+    Object.entries(replacements).forEach(([key, value]) => {
+      emailSubject = emailSubject.replaceAll(key, value);
+      emailContent = emailContent.replaceAll(key, value);
+    });
+
+    // Send test email via Resend
+    const result = await resend.emails.send({
+      from: 'onboarding@resend.dev', // TODO: Use organization's verified domain
+      to: testEmail,
+      subject: emailSubject,
+      html: emailContent
+    });
+
+    if (result.error) {
+      throw new Error(result.error.message);
+    }
+
+    console.log('Test email sent:', {
+      workflowId,
+      testEmail,
+      emailId: result.data?.id,
+      timestamp: new Date().toISOString()
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Test email sent successfully',
+      emailId: result.data?.id
+    });
+
+  } catch (error) {
+    console.error('Test email error:', error);
+    res.status(500).json({ 
+      error: 'Failed to send test email', 
       details: error.message 
     });
   }
