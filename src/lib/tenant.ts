@@ -140,11 +140,12 @@ export const tenant = {
     // First, check if we're on a custom domain
     const hostname = typeof window !== 'undefined' ? window.location.hostname : null
     if (hostname) {
-      // Skip custom domain check for localhost, IP addresses, and known subdomains
+      // Skip custom domain check for localhost, IP addresses, known subdomains, and Replit dev URLs
       const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1' || /^\d+\.\d+\.\d+\.\d+$/.test(hostname)
       const isSubdomain = hostname.includes('.m.ringing.org.uk') || hostname.includes('.member.ringing.org.uk')
+      const isReplitDev = hostname.includes('.replit.dev') || hostname.includes('.repl.co')
       
-      if (!isLocalhost && !isSubdomain) {
+      if (!isLocalhost && !isSubdomain && !isReplitDev) {
         console.log('Checking if hostname is a custom domain:', hostname)
         const org = await this.getOrganizationByCustomDomain(hostname)
         if (org) {
